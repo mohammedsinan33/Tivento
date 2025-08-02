@@ -14,16 +14,16 @@ const Header = () => {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-lg">C</span>
+                <span className="text-white font-bold text-lg">T</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900">ConnectSphere</span>
+              <span className="text-2xl font-bold text-gray-900">Tivento</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            <Link href="/explore" className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200">
-              Explore
+            <Link href="/?page=events" className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200">
+              Explore Events
             </Link>
             <Link href="/create-group" className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200">
               Create a group
@@ -54,8 +54,8 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden pb-4">
             <div className="flex flex-col space-y-3">
-              <Link href="/explore" className="text-gray-700 hover:text-orange-600 font-medium py-2">
-                Explore
+              <Link href="/?page=events" className="text-gray-700 hover:text-orange-600 font-medium py-2">
+                Explore Events
               </Link>
               <Link href="/create-group" className="text-gray-700 hover:text-orange-600 font-medium py-2">
                 Create a group

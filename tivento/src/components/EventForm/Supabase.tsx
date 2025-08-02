@@ -140,9 +140,9 @@ export const handleEventCreation = async (
       price: formData.price,
       currency: formData.currency,
       requirements: formData.requirements || null,
-      Agerestriction: formData.age_restriction,
+      agerestriction: formData.age_restriction,
       contact_email: formData.contact_email || null,
-      contact_phone: formData.contact_phone ? parseInt(formData.contact_phone) : null,
+      contact_phone: formData.contact_phone ? parseInt(formData.contact_phone) : undefined,
       is_online: formData.is_online,
       image_url: imageUrl
     };
