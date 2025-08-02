@@ -27,15 +27,17 @@ const Header = () => {
             <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
               Home
             </Link>
-            <Link href="/events" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+            <Link href="/?page=events" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
               Events
             </Link>
-            <Link href="/groups" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-              Groups
+            <Link href="/?page=create-event" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+              Create Event
             </Link>
-            <Link href="/categories" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-              Categories
-            </Link>
+            {isSignedIn && (
+              <Link href="/?page=profile" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                Profile
+              </Link>
+            )}
           </nav>
 
           {/* Authentication Section */}
@@ -93,15 +95,17 @@ const Header = () => {
               <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
                 Home
               </Link>
-              <Link href="/events" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+              <Link href="/?page=events" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
                 Events
               </Link>
-              <Link href="/groups" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                Groups
+              <Link href="/?page=create-event" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                Create Event
               </Link>
-              <Link href="/categories" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                Categories
-              </Link>
+              {isSignedIn && (
+                <Link href="/?page=profile" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                  Profile
+                </Link>
+              )}
               
               {!isLoaded ? null : !isSignedIn && (
                 <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100">

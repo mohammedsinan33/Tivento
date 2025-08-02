@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import LandingPage from '@/pages/LandingPage';
 import CreateEventPage from '@/pages/CreateEventPage';
 import EventPage from '@/pages/EventPage';
+import ProfilePage from '@/pages/Authentication/ProfilePage';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -15,6 +16,10 @@ export default function Home() {
 
   if (page === 'events') {
     return <EventPage />;
+  }
+
+  if (page === 'profile') {
+    return <ProfilePage />;
   }
 
   return <LandingPage />;
