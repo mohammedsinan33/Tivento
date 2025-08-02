@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+
 
 const CreateGroupCTA = () => {
   return (
@@ -43,13 +45,14 @@ const CreateGroupCTA = () => {
                   <span className="text-gray-700 text-lg">Community support & resources</span>
                 </div>
               </div>
-
-              <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg inline-flex items-center">
-                Create a group
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+              <Link href="/?page=create-event">
+                <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg inline-flex items-center">
+                  Create a group
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </Link>
             </div>
 
             {/* Image Side */}
