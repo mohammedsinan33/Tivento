@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ClerkProvider } from '@clerk/nextjs';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,12 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ConnectSphere - Find Your People. Do Your Thing.",
+  title: "Tivento - Find Your People. Do Your Thing.",
   description:
-    "From hiking and tech to book clubs and creative writing, discover events and groups for all your passions. Join millions using ConnectSphere to meet new people.",
+    "From hiking and tech to book clubs and creative writing, discover events and groups for all your passions. Join millions using Tivento to meet new people.",
   keywords:
     "events, groups, meetups, community, networking, hobbies",
-  authors: [{ name: "ConnectSphere Team" }],
+  authors: [{ name: "Tivento Team" }],
 };
 
 export const viewport: Viewport = {
@@ -32,12 +33,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
