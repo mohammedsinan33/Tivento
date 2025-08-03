@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
 
 const Header = () => {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isSignedIn, user } = useUser();
 
   const handleNavigation = (page: string) => {
     router.push(`/?page=${page}`);
@@ -40,12 +42,14 @@ const Header = () => {
             >
               Categories
             </button>
-            <button
-              onClick={() => handleNavigation('create-event')}
-              className="text-gray-700 hover:text-orange-600 transition-colors"
-            >
-              Create Event
-            </button>
+            {isSignedIn && (
+              <button
+                onClick={() => handleNavigation('create-event')}
+                className="text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                Create Event
+              </button>
+            )}
             <button
               onClick={() => handleNavigation('premium')}
               className="text-gray-700 hover:text-orange-600 transition-colors"
@@ -54,20 +58,52 @@ const Header = () => {
             </button>
           </nav>
 
-          {/* Auth Buttons */}
+          {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={() => handleNavigation('sign-in')}
-              className="text-gray-700 hover:text-orange-600 transition-colors"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => handleNavigation('sign-up')}
-              className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              Sign Up
-            </button>
+            {isSignedIn ? (
+              <div className="flex items-center space-x-4">
+                {/* User Profile Link */}
+                <button
+                  onClick={() => handleNavigation('profile')}
+                  className="text-gray-700 hover:text-orange-600 transition-colors"
+                >
+                  Profile
+                </button>
+                {/* My Events Link */}
+                <button
+                  onClick={() => handleNavigation('my-events')}
+                  className="text-gray-700 hover:text-orange-600 transition-colors"
+                >
+                  My Events
+                </button>
+                {/* User Button with Avatar */}
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8",
+                      userButtonPopoverCard: "shadow-lg",
+                      userButtonPopoverActionButton: "hover:bg-orange-50"
+                    }
+                  }}
+                  showName={false}
+                  userProfileMode="navigation"
+                  userProfileUrl="/?page=profile"
+                />
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <SignInButton mode="modal">
+                  <button className="text-gray-700 hover:text-orange-600 transition-colors">
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors">
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -101,31 +137,65 @@ const Header = () => {
               >
                 Categories
               </button>
-              <button
-                onClick={() => handleNavigation('create-event')}
-                className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md"
-              >
-                Create Event
-              </button>
+              {isSignedIn && (
+                <button
+                  onClick={() => handleNavigation('create-event')}
+                  className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md"
+                >
+                  Create Event
+                </button>
+              )}
               <button
                 onClick={() => handleNavigation('premium')}
                 className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md"
               >
                 Premium
               </button>
+              
+              {/* Mobile Auth Section */}
               <div className="border-t border-gray-200 pt-4">
-                <button
-                  onClick={() => handleNavigation('sign-in')}
-                  className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md"
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => handleNavigation('sign-up')}
-                  className="block w-full text-left px-3 py-2 bg-orange-600 text-white hover:bg-orange-700 rounded-md mt-2"
-                >
-                  Sign Up
-                </button>
+                {isSignedIn ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-3 px-3 py-2">
+                      <UserButton 
+                        appearance={{
+                          elements: {
+                            avatarBox: "w-8 h-8"
+                          }
+                        }}
+                        showName={false}
+                      />
+                      <span className="text-gray-900 font-medium">
+                        {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleNavigation('profile')}
+                      className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md"
+                    >
+                      Profile
+                    </button>
+                    <button
+                      onClick={() => handleNavigation('my-events')}
+                      className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md"
+                    >
+                      My Events
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <SignInButton mode="modal">
+                      <button className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md">
+                        Sign In
+                      </button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <button className="block w-full text-left px-3 py-2 bg-orange-600 text-white hover:bg-orange-700 rounded-md">
+                        Sign Up
+                      </button>
+                    </SignUpButton>
+                  </div>
+                )}
               </div>
             </div>
           </div>
