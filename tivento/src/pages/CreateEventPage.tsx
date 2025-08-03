@@ -12,9 +12,9 @@ import PricingSection from '@/components/EventForm/PricingSection';
 import AdditionalDetails from '@/components/EventForm/AdditionalDetails';
 import ImageUpload from '@/components/EventForm/ImageUpload';
 import FormActions from '@/components/EventForm/FormActions';
-import { createEventInDatabase } from '@/components/EventForm/Supabase';
+import { handleEventCreation } from '@/components/EventForm/Supabase'; // Import the correct function
 import { useUserSync } from '@/pages/Authentication/useUserSync';
-import { validateEventCreation, canCreateEvents, EventTier } from '@/lib/tierUtils';
+import { validateEventCreation, canCreateEvents, EventTier, getUserTierStatus } from '@/lib/tierUtils';
 
 interface EventFormData {
   title: string;
@@ -38,6 +38,9 @@ interface EventFormData {
   contact_email: string;
   contact_phone: string;
   registration_deadline: string;
+  // Updated field for email-based invites
+  is_invite_only: boolean;
+  invited_emails: string; // Changed from invited_usernames to invited_emails
 }
 
 const CreateEventPage = () => {
@@ -65,13 +68,21 @@ const CreateEventPage = () => {
     age_restriction: 'all ages',
     contact_email: '',
     contact_phone: '',
-    registration_deadline: ''
+    registration_deadline: '',
+    // Updated fields
+    is_invite_only: false,
+    invited_emails: '' // Changed from invited_usernames to invited_emails
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [tierValidationError, setTierValidationError] = useState<string>('');
+
+  // Check if current user is Platinum tier
+  const isPlatinumUser = supabaseUser ? 
+    getUserTierStatus(supabaseUser.tier).baseTier === 'platinum' || getUserTierStatus(supabaseUser.tier).isMentor 
+    : false;
 
   // Check if user has permission to access this page
   useEffect(() => {
@@ -156,13 +167,23 @@ const CreateEventPage = () => {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await createEventInDatabase(formData, selectedImageFile || undefined);
+      // Pass the creator email to the database function
+      const result = await handleEventCreation(
+        formData, 
+        selectedImageFile || undefined,
+        supabaseUser?.email // Pass the creator email here
+      );
 
-      if (error) {
-        throw error;
+      if (!result.success) {
+        throw new Error(result.error);
       }
 
-      alert('Event created successfully!');
+      if (formData.is_invite_only) {
+        alert('Event created successfully! Invitations have been sent to the specified emails.');
+      } else {
+        alert('Event created successfully!');
+      }
+      
       router.push('/');
     } catch (error: any) {
       console.error('Error creating event:', error);
@@ -237,6 +258,89 @@ const CreateEventPage = () => {
               formData={formData} 
               onInputChange={handleInputChange} 
             />
+
+            {/* Platinum Exclusive: Invite-Only Event Section */}
+            {isPlatinumUser && (
+              <section className="border-2 border-purple-200 rounded-xl p-6 bg-gradient-to-r from-purple-50 to-indigo-50">
+                <div className="flex items-center mb-4">
+                  <span className="text-2xl mr-3">💎</span>
+                  <div>
+                    <h2 className="text-2xl font-bold text-purple-900">Platinum Exclusive</h2>
+                    <p className="text-sm text-purple-700">Create invite-only events for exclusive networking</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Invite-Only Toggle */}
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="is_invite_only"
+                      name="is_invite_only"
+                      checked={formData.is_invite_only}
+                      onChange={handleInputChange}
+                      className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <label htmlFor="is_invite_only" className="ml-3 text-sm font-medium text-gray-900">
+                      Make this an invite-only event
+                    </label>
+                  </div>
+
+                  {/* Invited Users Input */}
+                  {formData.is_invite_only && (
+                    <div className="mt-4 p-4 bg-white rounded-lg border border-purple-200">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Invited Users Email Addresses *
+                        <span className="text-xs text-gray-500 ml-2">(Enter email addresses separated by commas)</span>
+                      </label>
+                      <textarea
+                        name="invited_emails"
+                        value={formData.invited_emails}
+                        onChange={handleInputChange}
+                        required={formData.is_invite_only}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="john@example.com, sarah@example.com, alex@example.com"
+                      />
+                      <div className="mt-2 text-xs text-gray-600">
+                        <p>📝 <strong>Tips:</strong></p>
+                        <ul className="list-disc list-inside mt-1 space-y-1">
+                          <li>Enter email addresses of registered Tivento users only</li>
+                          <li>Separate multiple email addresses with commas</li>
+                          <li>Only invited users will be able to see and register for this event</li>
+                          <li>You can invite up to 100 users for Platinum events</li>
+                          <li>Invited users will receive email notifications about the event</li>
+                        </ul>
+                      </div>
+                      
+                      {/* Live Email Count */}
+                      {formData.invited_emails.trim() && (
+                        <div className="mt-3 p-2 bg-purple-50 rounded-lg">
+                          <p className="text-sm text-purple-700">
+                            📧 <strong>{formData.invited_emails.split(',').filter(email => email.trim()).length}</strong> user(s) will be invited
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Invite-Only Benefits Info */}
+                  {formData.is_invite_only && (
+                    <div className="mt-4 p-4 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg border border-purple-200">
+                      <h4 className="font-semibold text-purple-900 mb-2">✨ Invite-Only Event Benefits</h4>
+                      <ul className="text-sm text-purple-800 space-y-1">
+                        <li>🔒 <strong>Exclusive Access:</strong> Only invited users can see the event</li>
+                        <li>📧 <strong>Personal Invitations:</strong> Invited users receive email notifications</li>
+                        <li>👥 <strong>Quality Networking:</strong> Curated attendee list for better connections</li>
+                        <li>🎯 <strong>Targeted Events:</strong> Perfect for team meetings, VIP sessions, or exclusive workshops</li>
+                        <li>📊 <strong>Better Control:</strong> Manage exactly who can attend your event</li>
+                        <li>✅ <strong>Email Validation:</strong> System verifies all invited emails are registered users</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
             
             <AdditionalDetails 
               formData={formData} 

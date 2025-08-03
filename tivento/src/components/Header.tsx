@@ -1,15 +1,62 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useUser, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
 import { useUserSync } from '@/pages/Authentication/useUserSync';
 import { canCreateEvents } from '@/lib/tierUtils';
+import { getUserNotifications, markNotificationAsRead, UserNotification } from '@/components/EventForm/Supabase';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [notificationLoading, setNotificationLoading] = useState(false);
   const { isSignedIn, user, isLoaded } = useUser();
   const { supabaseUser, syncLoading } = useUserSync();
+
+  // Fetch notifications when user is loaded
+  useEffect(() => {
+    if (supabaseUser?.email) {
+      fetchNotifications();
+    }
+  }, [supabaseUser?.email]);
+
+  const fetchNotifications = async () => {
+    if (!supabaseUser?.email) return;
+    
+    setNotificationLoading(true);
+    try {
+      const { data, error } = await getUserNotifications(supabaseUser.email);
+      if (!error && data) {
+        setNotifications(data);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  const handleNotificationClick = async (notification: UserNotification) => {
+    if (!notification.is_read && notification.id) {
+      await markNotificationAsRead(notification.id);
+      // Update local state
+      setNotifications(prev => 
+        prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
+      );
+    }
+    
+    // Close notification panel
+    setIsNotificationOpen(false);
+    
+    // Navigate based on notification type
+    if (notification.related_event_id) {
+      window.location.href = `/?page=event-details&id=${notification.related_event_id}`;
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const getTierColor = (tier: string) => {
     switch (tier?.toLowerCase()) {
@@ -54,6 +101,16 @@ const Header = () => {
     return '/?page=create-event';
   };
 
+  const formatNotificationTime = (createdAt: string) => {
+    const date = new Date(createdAt);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    return date.toLocaleDateString();
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,46 +118,118 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-lg">T</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-900">Tivento</span>
+              <span className="text-2xl font-bold text-orange-500">Tivento</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+            <Link href="/" className="text-gray-700 hover:text-orange-500 transition-colors duration-200">
               Home
             </Link>
-            <Link href="/?page=events" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+            <Link href="/?page=events" className="text-gray-700 hover:text-orange-500 transition-colors duration-200">
               Events
             </Link>
-            <Link href={getCreateEventLink()} className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+            <Link href={getCreateEventLink()} className="text-gray-700 hover:text-orange-500 transition-colors duration-200">
               Create Event
             </Link>
-            {isSignedIn && (
-              <Link href="/?page=profile" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                Profile
-              </Link>
-            )}
-            <Link href="/?page=premium" className="text-gray-600 hover:text-gray-900 transition-colors duration-200 relative">
+            <Link href="/?page=premium" className="text-gray-700 hover:text-orange-500 transition-colors duration-200">
               Premium
-              <span className="absolute -top-1 -right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full">
-                New
-              </span>
             </Link>
           </nav>
 
-          {/* Authentication Section */}
+          {/* User Section */}
           <div className="flex items-center space-x-4">
-            {!isLoaded ? (
-              // Loading state
-              <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-            ) : isSignedIn ? (
-              // Signed in state
+            {isLoaded && isSignedIn ? (
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
+                {/* Notifications Bell */}
+                {supabaseUser && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                      className="relative p-2 text-gray-600 hover:text-orange-500 transition-colors duration-200"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Notifications Dropdown */}
+                    {isNotificationOpen && (
+                      <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        <div className="p-4 border-b border-gray-200">
+                          <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                          {unreadCount > 0 && (
+                            <p className="text-sm text-gray-600">{unreadCount} unread</p>
+                          )}
+                        </div>
+                        
+                        <div className="max-h-96 overflow-y-auto">
+                          {notificationLoading ? (
+                            <div className="p-4 text-center">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
+                              <p className="text-sm text-gray-600 mt-2">Loading notifications...</p>
+                            </div>
+                          ) : notifications.length === 0 ? (
+                            <div className="p-4 text-center">
+                              <p className="text-gray-600">No notifications yet</p>
+                            </div>
+                          ) : (
+                            notifications.map((notification) => (
+                              <div
+                                key={notification.id}
+                                onClick={() => handleNotificationClick(notification)}
+                                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors duration-200 ${
+                                  !notification.is_read ? 'bg-blue-50' : ''
+                                }`}
+                              >
+                                <div className="flex items-start space-x-3">
+                                  <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
+                                    !notification.is_read ? 'bg-blue-500' : 'bg-gray-300'
+                                  }`}></div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className={`text-sm font-medium ${
+                                      !notification.is_read ? 'text-gray-900' : 'text-gray-700'
+                                    }`}>
+                                      {notification.title}
+                                    </h4>
+                                    <p className={`text-sm mt-1 ${
+                                      !notification.is_read ? 'text-gray-700' : 'text-gray-600'
+                                    }`}>
+                                      {notification.message}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {notification.created_at && formatNotificationTime(notification.created_at)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        
+                        {notifications.length > 0 && (
+                          <div className="p-3 border-t border-gray-200 text-center">
+                            <button
+                              onClick={() => setIsNotificationOpen(false)}
+                              className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* User Info */}
+                <div className="flex items-center space-x-3">
                   <span className="text-sm text-gray-600 hidden sm:block">
                     Welcome, {user.firstName || user.username}!
                   </span>
@@ -126,16 +255,15 @@ const Header = () => {
                 />
               </div>
             ) : (
-              // Signed out state
               <div className="flex items-center space-x-4">
                 <SignInButton mode="modal">
-                  <button className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                    Log in
+                  <button className="text-gray-700 hover:text-orange-500 transition-colors duration-200">
+                    Sign In
                   </button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105">
-                    Sign up
+                  <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                    Sign Up
                   </button>
                 </SignUpButton>
               </div>
@@ -144,7 +272,7 @@ const Header = () => {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-gray-600 hover:text-gray-900"
+              className="md:hidden p-2 rounded-md text-gray-700 hover:text-orange-500 hover:bg-gray-100 transition-colors duration-200"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -155,82 +283,42 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-100 py-4">
-            <div className="flex flex-col space-y-4">
-              <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                Home
-              </Link>
-              <Link href="/?page=events" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                Events
-              </Link>
-              <Link href={getCreateEventLink()} className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                Create Event
-              </Link>
-              <Link href="/?page=premium" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                Premium
-              </Link>
-              {isSignedIn && (
-                <Link href="/?page=profile" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                  Profile
-                </Link>
-              )}
-              
-              {/* Mobile user info */}
-              {isSignedIn && supabaseUser && (
-                <div className="pt-4 border-t border-gray-100">
-                  {/* Clickable Tier Badge - Mobile */}
-                  <Link href="/?page=premium" className="hover:opacity-80 transition-opacity duration-200">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium cursor-pointer ${getTierColor(supabaseUser.tier)}`}>
-                      <span className="mr-1">{getTierIcon(supabaseUser.tier)}</span>
-                      {supabaseUser.tier.charAt(0).toUpperCase() + supabaseUser.tier.slice(1)}
-                    </span>
-                  </Link>
-                </div>
-              )}
-              
-              {!isLoaded ? null : !isSignedIn && (
-                <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100">
-                  <SignInButton mode="modal">
-                    <button className="text-left text-gray-600 hover:text-gray-900 transition-colors duration-200">
-                      Log in
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
-                    <button className="text-left bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 w-fit">
-                      Sign up
-                    </button>
-                  </SignUpButton>
-                </div>
-              )}
-            </div>
+          <div className="md:hidden py-4 space-y-2">
+            <Link href="/" className="block text-gray-700 hover:text-orange-500 transition-colors duration-200 py-2">
+              Home
+            </Link>
+            <Link href="/?page=events" className="block text-gray-700 hover:text-orange-500 transition-colors duration-200 py-2">
+              Events
+            </Link>
+            <Link href={getCreateEventLink()} className="block text-gray-700 hover:text-orange-500 transition-colors duration-200 py-2">
+              Create Event
+            </Link>
+            <Link href="/?page=premium" className="block text-gray-700 hover:text-orange-500 transition-colors duration-200 py-2">
+              Premium
+            </Link>
             
-            {/* Mobile Premium CTA */}
-            {isMenuOpen && isSignedIn && supabaseUser && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-sm">Current Plan</h4>
-                      {/* Another Clickable Tier Badge in Mobile CTA */}
-                      <Link href="/?page=premium" className="hover:opacity-80 transition-opacity duration-200">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium cursor-pointer mt-1 ${getTierColor(supabaseUser.tier)}`}>
-                          <span className="mr-1">{getTierIcon(supabaseUser.tier)}</span>
-                          {supabaseUser.tier.charAt(0).toUpperCase() + supabaseUser.tier.slice(1)} Member
-                        </span>
-                      </Link>
-                    </div>
-                    <Link href="/?page=premium">
-                      <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200">
-                        Upgrade
-                      </button>
-                    </Link>
-                  </div>
-                </div>
+            {/* Mobile Tier Badge */}
+            {supabaseUser && (
+              <div className="pt-2">
+                <Link href="/?page=premium" className="inline-block hover:opacity-80 transition-opacity duration-200">
+                  <span className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium cursor-pointer ${getTierColor(supabaseUser.tier)}`}>
+                    <span className="mr-2">{getTierIcon(supabaseUser.tier)}</span>
+                    {supabaseUser.tier.charAt(0).toUpperCase() + supabaseUser.tier.slice(1)} Plan
+                  </span>
+                </Link>
               </div>
             )}
           </div>
         )}
       </div>
+
+      {/* Click outside to close notifications */}
+      {isNotificationOpen && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setIsNotificationOpen(false)}
+        ></div>
+      )}
     </header>
   );
 };
