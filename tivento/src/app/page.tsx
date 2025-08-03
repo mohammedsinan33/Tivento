@@ -2,15 +2,15 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import LandingPage from '@/pages/LandingPage';
-import CreateEventPage from '@/pages/CreateEventPage';
-import EventPage from '@/pages/EventPage';
-import EventDetailsPage from '@/pages/EventDetailsPage';
-import PremiumPage from '@/pages/PremiumPage';
+import LandingPage from '@/components/Pages/LandingPage';
+import CreateEventPage from '@/components/Pages/CreateEventPage';
+import EventPage from '@/components/Pages/EventPage';
+import EventDetailsPage from '@/components/Pages/EventDetailsPage';
+import PremiumPage from '@/components/Pages/PremiumPage';
 import ProfilePage from '@/components/Authentication/ProfilePage';
 import SignInPage from '@/components/Authentication/SignInPage';
 import SignUpPage from '@/components/Authentication/SignUpPage';
-import InvitedEventsPage from '@/pages/InvitedEventsPage';
+import InvitedEventsPage from '@/components/Pages/InvitedEventsPage';
 import Categories from '@/components/LandingPage/Categories';
 import CategoryPage from '@/components/LandingPage/CategoryPage';
 
