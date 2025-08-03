@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUserSync } from './useUserSync';
+import { useUserSync } from '@/lib/auth/useUserSync';
 import { supabase } from '@/lib/supabase';
 
 interface Event {
