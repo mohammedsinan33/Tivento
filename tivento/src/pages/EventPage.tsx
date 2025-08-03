@@ -71,11 +71,11 @@ const EventPage = () => {
       console.log('After search filter:', filtered.length);
     }
 
-    // Apply category filter - FIXED to handle database column name inconsistency
+    // Apply category filter - Using the property that actually works
     if (selectedCategory !== 'All Categories') {
       filtered = filtered.filter(event => {
-        // Handle both 'Catogory' (misspelled DB column) and 'category' (correct field)
-        const eventCategory = event.Catogory || event.category || '';
+        // Use bracket notation to access 'category' property to avoid TypeScript error
+        const eventCategory = (event as any).category || event.Catogory || '';
         const normalizedEventCategory = eventCategory.toLowerCase().trim();
         const normalizedSelectedCategory = selectedCategory.toLowerCase().trim();
         
