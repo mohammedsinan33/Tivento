@@ -53,19 +53,28 @@ const EventFilters: React.FC<EventFiltersProps> = ({
     return tier.charAt(0).toUpperCase() + tier.slice(1);
   };
 
-  // Fixed: Only include the actual state values in dependency array
+  // Debug effect to log filter changes
   React.useEffect(() => {
-  }, [selectedCategory, selectedTier, searchTerm]); // Removed 'categories' from dependencies
+    console.log('EventFilters Debug:', {
+      selectedCategory,
+      selectedTier,
+      searchTerm,
+      availableCategories: categories
+    });
+  }, [selectedCategory, selectedTier, searchTerm]);
 
   const handleCategoryChange = (value: string) => {
+    console.log('Category changed from', selectedCategory, 'to', value);
     onCategoryChange(value);
   };
 
   const handleTierChange = (value: string) => {
+    console.log('Tier changed from', selectedTier, 'to', value);
     onTierChange(value);
   };
 
   const handleSearchChange = (value: string) => {
+    console.log('Search changed from', searchTerm, 'to', value);
     onSearchChange(value);
   };
 
@@ -109,7 +118,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({
         {/* Tier Filter */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            User Tier
+            Event Tier
           </label>
           <select
             value={selectedTier}
@@ -124,6 +133,48 @@ const EventFilters: React.FC<EventFiltersProps> = ({
           </select>
         </div>
       </div>
+
+      {/* Active Filters Display */}
+      {(selectedCategory !== 'All Categories' || selectedTier !== 'All Tiers' || searchTerm.trim()) && (
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <h4 className="text-sm font-semibold text-gray-700 mb-2">Active Filters:</h4>
+          <div className="flex flex-wrap gap-2">
+            {selectedCategory !== 'All Categories' && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                Category: {formatCategoryName(selectedCategory)}
+                <button
+                  onClick={() => handleCategoryChange('All Categories')}
+                  className="ml-2 text-orange-600 hover:text-orange-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {selectedTier !== 'All Tiers' && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                Tier: {formatTierName(selectedTier)}
+                <button
+                  onClick={() => handleTierChange('All Tiers')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {searchTerm.trim() && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Search: "{searchTerm}"
+                <button
+                  onClick={() => handleSearchChange('')}
+                  className="ml-2 text-green-600 hover:text-green-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Clear Filters Button */}
       <div className="mt-6 text-center">

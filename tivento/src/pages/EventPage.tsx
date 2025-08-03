@@ -53,6 +53,13 @@ const EventPage = () => {
   const applyFilters = () => {
     let filtered = [...allEvents];
 
+    console.log('Applying filters:', {
+      selectedCategory,
+      selectedTier,
+      searchTerm,
+      totalEvents: allEvents.length
+    });
+
     // Apply search filter first
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
@@ -61,13 +68,28 @@ const EventPage = () => {
         event.description.toLowerCase().includes(searchLower) ||
         (event.tags && event.tags.toLowerCase().includes(searchLower))
       );
+      console.log('After search filter:', filtered.length);
     }
 
-    // Apply category filter
+    // Apply category filter - FIXED to handle database column name inconsistency
     if (selectedCategory !== 'All Categories') {
-      filtered = filtered.filter(event => 
-        event.Catogory && event.Catogory.toLowerCase() === selectedCategory.toLowerCase()
-      );
+      filtered = filtered.filter(event => {
+        // Handle both 'Catogory' (misspelled DB column) and 'category' (correct field)
+        const eventCategory = event.Catogory || event.category || '';
+        const normalizedEventCategory = eventCategory.toLowerCase().trim();
+        const normalizedSelectedCategory = selectedCategory.toLowerCase().trim();
+        
+        console.log('Category comparison:', {
+          eventCategory,
+          normalizedEventCategory,
+          selectedCategory,
+          normalizedSelectedCategory,
+          matches: normalizedEventCategory === normalizedSelectedCategory
+        });
+        
+        return normalizedEventCategory === normalizedSelectedCategory;
+      });
+      console.log('After category filter:', filtered.length);
     }
 
     // Apply tier filter
@@ -81,8 +103,10 @@ const EventPage = () => {
       
       const allowedTiers = tierHierarchy[selectedTier] || ['free'];
       filtered = filtered.filter(event => allowedTiers.includes(event.tier));
+      console.log('After tier filter:', filtered.length);
     }
 
+    console.log('Final filtered events:', filtered.length);
     setFilteredEvents(filtered);
   };
 
