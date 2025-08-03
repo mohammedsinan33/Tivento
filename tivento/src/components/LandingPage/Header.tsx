@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
-import { Bell, User, Calendar, Settings, Crown } from 'lucide-react';
+import { useUser, UserButton, SignInButton, SignUpButton, useClerk } from '@clerk/nextjs';
+import { Bell, User, Calendar, Settings, Crown, LogOut } from 'lucide-react';
 import { useNotifications } from '../Notifications/NotificationProvider';
 import { useUserTier } from '@/lib/auth/useUserTier';
 import { getTierDisplayName, getTierColor, getTierIcon } from '@/lib/tierUtils';
@@ -15,6 +15,7 @@ const Header = () => {
   const { isSignedIn, user } = useUser();
   const { userTier, loading: tierLoading } = useUserTier();
   const { addNotification } = useNotifications();
+  const { signOut } = useClerk();
 
   const handleNavigation = (page: string) => {
     router.push(`/?page=${page}`);
@@ -29,6 +30,27 @@ const Header = () => {
       message: 'No new notifications at this time.',
       duration: 3000
     });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setIsProfileDropdownOpen(false);
+      addNotification({
+        type: 'success',
+        title: 'Logged out successfully',
+        message: 'You have been signed out of your account.',
+        duration: 3000
+      });
+      router.push('/');
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        title: 'Logout failed',
+        message: 'There was an error signing you out. Please try again.',
+        duration: 5000
+      });
+    }
   };
 
   const getUserDisplayName = () => {
@@ -210,6 +232,14 @@ const Header = () => {
                         <Settings className="h-4 w-4 mr-3" />
                         Settings
                       </button>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        Sign Out
+                      </button>
                     </div>
                   )}
                 </div>
@@ -332,6 +362,14 @@ const Header = () => {
                         🚀 Upgrade to Premium
                       </button>
                     )}
+                    <div className="border-t border-gray-100 my-2"></div>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md font-medium"
+                    >
+                      <LogOut className="inline h-4 w-4 mr-2" />
+                      Sign Out
+                    </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
