@@ -14,11 +14,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tivento - Find Your People. Do Your Thing.",
+  title: "Tivento",
   description:
     "From hiking and tech to book clubs and creative writing, discover events and groups for all your passions. Join millions using Tivento to meet new people.",
   keywords: "events, groups, meetups, community, networking, hobbies",
   authors: [{ name: "Tivento Team" }],
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
