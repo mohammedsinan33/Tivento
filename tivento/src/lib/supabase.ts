@@ -1,21 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Helper function to get environment variables safely
-const getEnvVar = (name: string): string => {
-  const value = process.env[name]
-  if (!value) {
-    console.error(`Missing environment variable: ${name}`)
-    // Return empty string to prevent build failures, will be handled at runtime
-    return ''
-  }
-  return value
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl) {
+  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_URL')
+}
+if (!supabaseKey) {
+  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY')
 }
 
-const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL')
-const supabaseKey = getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-
-// Create client with fallback values to prevent build errors
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseKey || 'placeholder-key'
-)
+export const supabase = createClient(supabaseUrl, supabaseKey)
