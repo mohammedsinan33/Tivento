@@ -9,6 +9,7 @@ interface BasicInformationProps {
     tier: 'free' | 'silver' | 'gold' | 'platinum';
     tags: string;
     max_attendees: number;
+    group: string;
   };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   userTier?: UserTier;
@@ -218,6 +219,20 @@ const BasicInformation: React.FC<BasicInformationProps> = ({
             onChange={onInputChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             placeholder="e.g. networking, tech, beginner (comma separated)"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Group/Community Name
+          </label>
+          <input
+            type="text"
+            name="group"
+            value={formData.group}
+            onChange={onInputChange}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            placeholder="e.g. Tech Enthusiasts, Business Network, Local Community"
           />
         </div>
 

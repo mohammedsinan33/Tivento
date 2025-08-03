@@ -6,6 +6,7 @@ export interface EventData {
   category: string;
   tier: 'free' | 'silver' | 'gold' | 'platinum';
   tags: string;
+  group: string;
   max_attendees: number;
   event_date: string;
   starting_time: string;
@@ -291,6 +292,7 @@ export const createEventInDatabase = async (
       category: formData.category,
       tier: formData.tier,
       tags: formData.tags,
+      group: formData.group,
       max_attendees: formData.max_attendees.toString(),
       event_date: formData.event_date,
       starting_time: formData.start_time,
@@ -371,6 +373,7 @@ export const handleEventCreation = async (
       category: formData.category,
       tier: formData.tier,
       tags: formData.tags,
+      group: formData.group,
       max_attendees: formData.max_attendees,
       event_date: formData.event_date,
       starting_time: formData.start_time,

@@ -31,6 +31,7 @@ interface EventFormData {
   currency: string;
   category: string;
   tags: string;
+  group: string;
   is_online: boolean;
   meeting_link: string;
   requirements: string;
@@ -62,6 +63,7 @@ const CreateEventPage = () => {
     currency: 'USD',
     category: '',
     tags: '',
+    group: '', 
     is_online: false,
     meeting_link: '',
     requirements: '',

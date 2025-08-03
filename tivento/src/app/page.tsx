@@ -10,6 +10,8 @@ import ProfilePage from '@/pages/Authentication/ProfilePage';
 import SignInPage from '@/pages/Authentication/SignInPage';
 import SignUpPage from '@/pages/Authentication/SignUpPage';
 import InvitedEventsPage from '@/pages/InvitedEventsPage';
+import Categories from '@/components/Categories';
+import CategoryPage from '@/components/CategoryPage';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -46,6 +48,14 @@ export default function Home() {
 
   if (page === 'invited-events') {
     return <InvitedEventsPage />;
+  }
+
+  if (page === 'categories') {
+    return <Categories />;
+  }
+
+  if (page === 'category') {
+    return <CategoryPage />;
   }
 
   return <LandingPage />;
