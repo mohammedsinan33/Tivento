@@ -17,15 +17,14 @@ export interface EventData {
   price: number;
   currency: string;
   requirements?: string;
-  agerestriction: string;
+  Agerestriction: string;  // Fixed: Capital A to match your DB
   contact_email?: string;
   contact_phone?: number;
   is_online: boolean;
   image_url?: string;
-  // Updated fields for email-based invite system
   is_invite_only?: boolean;
   invited_emails?: string;
-  username?: string; // This is your existing column that references users.email
+  username?: string;
 }
 
 export interface EventInvitation {
@@ -285,7 +284,7 @@ export const createEventInDatabase = async (
       validatedEmails = validEmails.join(', ');
     }
 
-    // Prepare data for database
+    // Prepare data for database - FIXED FIELD MAPPINGS TO MATCH YOUR DB
     const eventData = {
       title: formData.title,
       description: formData.description,
@@ -295,23 +294,22 @@ export const createEventInDatabase = async (
       group: formData.group,
       max_attendees: formData.max_attendees.toString(),
       event_date: formData.event_date,
-      starting_time: formData.start_time,
-      ending_time: formData.end_time,
-      reg_deadline: formData.registration_deadline || null,
+      starting_time: formData.start_time,  // Form field: start_time → DB column: starting_time
+      ending_time: formData.end_time,      // Form field: end_time → DB column: ending_time
+      reg_deadline: formData.registration_deadline || null, // Form field: registration_deadline → DB column: reg_deadline
       venue_name: formData.venue_name || null,
-      Address: formData.location || null,
+      Address: formData.location || null,  // Form field: location → DB column: Address
       price: formData.price,
       currency: formData.currency,
       requirements: formData.requirements || null,
-      Agerestriction: formData.age_restriction,
+      Agerestriction: formData.age_restriction, // Form field: age_restriction → DB column: Agerestriction
       contact_email: formData.contact_email || null,
       contact_phone: formData.contact_phone ? parseInt(formData.contact_phone) : null,
       is_online: formData.is_online,
       image_url: imageUrl,
-      // Updated fields for email-based invite system
       is_invite_only: formData.is_invite_only || false,
       invited_emails: formData.is_invite_only ? validatedEmails : null,
-      username: creatorEmail || null // Using existing username column for creator email
+      username: creatorEmail || null
     };
 
     const { data, error } = await supabase
@@ -366,7 +364,27 @@ export const handleEventCreation = async (
       }
     }
 
-    // Prepare event data for database
+    // Validate invited emails if it's an invite-only event
+    let validatedEmails = '';
+    if (formData.is_invite_only && formData.invited_emails) {
+      const emailArray = formData.invited_emails
+        .split(',')
+        .map((email: string) => email.trim())
+        .filter((email: string) => email);
+
+      const { validEmails, invalidEmails } = await validateEmailsExist(emailArray);
+
+      if (invalidEmails.length > 0) {
+        return {
+          success: false,
+          error: `The following emails are not registered users: ${invalidEmails.join(', ')}`
+        };
+      }
+
+      validatedEmails = validEmails.join(', ');
+    }
+
+    // Prepare event data for database - FIXED FIELD MAPPINGS TO MATCH YOUR DB
     const eventData: EventData = {
       title: formData.title,
       description: formData.description,
@@ -376,23 +394,22 @@ export const handleEventCreation = async (
       group: formData.group,
       max_attendees: formData.max_attendees,
       event_date: formData.event_date,
-      starting_time: formData.start_time,
-      ending_time: formData.end_time,
-      reg_deadline: formData.registration_deadline || null,
-      venue_name: formData.venue_name || null,
-      Address: formData.location || null,
+      starting_time: formData.start_time,  // Form field: start_time → DB column: starting_time
+      ending_time: formData.end_time,      // Form field: end_time → DB column: ending_time
+      reg_deadline: formData.registration_deadline || undefined, // Form field: registration_deadline → DB column: reg_deadline
+      venue_name: formData.venue_name || undefined,
+      Address: formData.location || undefined, // Form field: location → DB column: Address
       price: formData.price,
       currency: formData.currency,
-      requirements: formData.requirements || null,
-      agerestriction: formData.age_restriction,
-      contact_email: formData.contact_email || null,
+      requirements: formData.requirements || undefined,
+      Agerestriction: formData.age_restriction, // Form field: age_restriction → DB column: Agerestriction
+      contact_email: formData.contact_email || undefined,
       contact_phone: formData.contact_phone ? parseInt(formData.contact_phone) : undefined,
       is_online: formData.is_online,
       image_url: imageUrl,
-      // Updated fields for email-based invite system
       is_invite_only: formData.is_invite_only || false,
-      invited_emails: formData.is_invite_only ? formData.invited_emails : undefined,
-      username: creatorEmail // Using existing username column
+      invited_emails: formData.is_invite_only ? validatedEmails || undefined : undefined,
+      username: creatorEmail || undefined
     };
 
     // Create event in database
@@ -551,17 +568,24 @@ export const deleteImageFromBucket = async (imageUrl: string): Promise<{ success
   }
 };
 
-// Validation function for form data (updated for emails)
+// Update validation function to use correct field names
 export const validateEventData = (formData: any): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Required fields validation
+  // Required fields validation - MANDATORY for group creation
   if (!formData.title?.trim()) errors.push('Event title is required');
   if (!formData.description?.trim()) errors.push('Description is required');
   if (!formData.category?.trim()) errors.push('Category is required');
+  if (!formData.tier?.trim()) errors.push('Event tier is required');
+  if (!formData.tags?.trim()) errors.push('Tags are required');
+  if (!formData.group?.trim()) errors.push('Group/Community name is required');
   if (!formData.event_date) errors.push('Event date is required');
-  if (!formData.start_time) errors.push('Start time is required');
-  if (!formData.end_time) errors.push('End time is required');
+  if (!formData.start_time) errors.push('Start time is required'); // Form field validation
+  if (!formData.end_time) errors.push('End time is required');     // Form field validation
+  if (!formData.registration_deadline) errors.push('Registration deadline is required'); // Form field validation
+  if (!formData.age_restriction?.trim()) errors.push('Age restriction is required'); // Form field validation
+  if (!formData.contact_email?.trim()) errors.push('Contact email is required');
+  if (!formData.contact_phone?.trim()) errors.push('Contact phone is required');
 
   // Date validation
   if (formData.event_date) {
@@ -574,8 +598,18 @@ export const validateEventData = (formData: any): { isValid: boolean; errors: st
     }
   }
 
+  // Registration deadline validation
+  if (formData.registration_deadline) {
+    const regDeadline = new Date(formData.registration_deadline);
+    const eventDate = new Date(formData.event_date + 'T' + formData.start_time); // Form field validation
+    
+    if (regDeadline >= eventDate) {
+      errors.push('Registration deadline must be before the event start time');
+    }
+  }
+
   // Time validation
-  if (formData.start_time && formData.end_time) {
+  if (formData.start_time && formData.end_time) { // Form field validation
     if (formData.start_time >= formData.end_time) {
       errors.push('End time must be after start time');
     }
@@ -597,27 +631,22 @@ export const validateEventData = (formData: any): { isValid: boolean; errors: st
     }
   }
 
-  // Price validation
-  if (formData.price < 0) {
-    errors.push('Price cannot be negative');
-  }
-
   // Max attendees validation
   if (formData.max_attendees < 1) {
     errors.push('Maximum attendees must be at least 1');
   }
 
-  // Online event validation
+  // Online event validation (conditional - only if marked as online)
   if (formData.is_online && !formData.meeting_link?.trim()) {
     errors.push('Meeting link is required for online events');
   }
 
-  // Offline event validation
-  if (!formData.is_online && !formData.location?.trim()) {
+  // Offline event validation (conditional - only if NOT marked as online)
+  if (!formData.is_online && !formData.location?.trim()) { // Form field validation
     errors.push('Address is required for offline events');
   }
 
-  // Invite-only validation (updated for emails)
+  // Invite-only validation (conditional - only for platinum features)
   if (formData.is_invite_only && !formData.invited_emails?.trim()) {
     errors.push('Invited emails are required for invite-only events');
   }

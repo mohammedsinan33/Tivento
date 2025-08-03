@@ -39,9 +39,7 @@ const UpcomingEvents = () => {
       const now = new Date();
       const currentTime = now.toTimeString().slice(0, 8); // Format: "HH:MM:SS"
       const currentDate = now.toISOString().slice(0, 10); // Format: "YYYY-MM-DD"
-      
-      console.log('Current time:', currentTime, 'Current date:', currentDate);
-      
+            
       // Fetch all events to ensure we have enough data
       const { data: eventsData, error: eventsError } = await supabase
         .from('events')
@@ -51,7 +49,6 @@ const UpcomingEvents = () => {
 
       if (eventsError) throw eventsError;
 
-      console.log('Raw events data:', eventsData);
 
       if (!eventsData || eventsData.length === 0) {
         setEvents([]);
@@ -66,7 +63,6 @@ const UpcomingEvents = () => {
         try {
           // Check if starting_time is null or undefined
           if (!event.starting_time) {
-            console.log(`Event ${event.title} has null/undefined starting_time, skipping time parsing`);
             // Add to past events as fallback for events without time
             pastEvents.push(event);
             return;
@@ -90,8 +86,6 @@ const UpcomingEvents = () => {
           const isValidDate = !isNaN(eventDateTime.getTime());
           const isFuture = eventDateTime > now;
           
-          console.log(`Event: ${event.title}, Time: ${event.starting_time}, Parsed: ${eventDateTime}, Valid: ${isValidDate}, Future: ${isFuture}`);
-          
           if (isValidDate) {
             if (isFuture) {
               upcomingEvents.push(event);
@@ -108,8 +102,6 @@ const UpcomingEvents = () => {
           pastEvents.push(event);
         }
       });
-
-      console.log('Upcoming events:', upcomingEvents.length, 'Past events:', pastEvents.length);
 
       // Combine events: prioritize upcoming events, then fill with most recent past events if needed
       let selectedEvents = [...upcomingEvents];
@@ -136,13 +128,11 @@ const UpcomingEvents = () => {
           .slice(0, neededEvents);
         
         selectedEvents = [...selectedEvents, ...recentPastEvents];
-        console.log(`Added ${recentPastEvents.length} past events to reach minimum of 6`);
       }
 
       // If we still don't have 6 events, just take the first 6 from all events
       if (selectedEvents.length < 6) {
         selectedEvents = eventsData.slice(0, 6);
-        console.log('Using first 6 events from database as fallback');
       }
 
       // Get registration counts for selected events
@@ -227,7 +217,6 @@ const UpcomingEvents = () => {
 
       // Take exactly 6 events
       setEvents(sortedEvents.slice(0, 6));
-      console.log(`Final events selected: ${sortedEvents.slice(0, 6).length}`);
     } catch (err) {
       console.error('Error fetching upcoming events:', err);
       setEvents([]);
@@ -305,7 +294,8 @@ const UpcomingEvents = () => {
 
   const handleJoinEvent = (event: EventWithRegistrations) => {
     if (!isSignedIn) {
-      window.location.href = `/?page=premium&reason=register-${event.tier?.toLowerCase()}&redirect=sign-in`;
+      // Redirect to sign-in for non-authenticated users
+      window.location.href = '/?page=sign-in';
       return;
     }
 
@@ -339,24 +329,6 @@ const UpcomingEvents = () => {
 
     if (!canRegisterForEvent(userTier, eventTier)) {
       return 'Upgrade to Join';
-    }
-
-    // Check if event is in the past
-    try {
-      // Handle null/undefined times
-      if (!event.starting_time) {
-        return 'View Event';
-      }
-
-      const now = new Date();
-      const currentDate = now.toISOString().slice(0, 10);
-      const eventDateTime = new Date(event.starting_time.includes('T') ? event.starting_time : `${currentDate}T${event.starting_time}`);
-      
-      if (eventDateTime < now) {
-        return 'View Event';
-      }
-    } catch (error) {
-      // If can't parse date, default to join
     }
 
     return 'Join Event';

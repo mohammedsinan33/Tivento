@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import PageHeader from '@/components/EventPage/PageHeader';
 import EventFilters from '@/components/EventPage/EventFilters';
 import EventList from '@/components/EventPage/EventList';
@@ -78,12 +78,7 @@ const EventPage = () => {
   const applyFilters = () => {
     let filtered = [...allEvents];
 
-    console.log('Applying filters:', {
-      selectedCategory,
-      selectedTier,
-      searchTerm,
-      totalEvents: allEvents.length
-    });
+    
 
     // Apply search filter first
     if (searchTerm.trim()) {
@@ -105,7 +100,7 @@ const EventPage = () => {
           (eventWithExtraFields.category && eventWithExtraFields.category.toLowerCase().includes(searchLower))
         );
       });
-      console.log('After search filter:', filtered.length);
+      
     }
 
     // Apply category filter - Using the property that actually works
@@ -116,17 +111,10 @@ const EventPage = () => {
         const normalizedEventCategory = eventCategory.toLowerCase().trim();
         const normalizedSelectedCategory = selectedCategory.toLowerCase().trim();
         
-        console.log('Category comparison:', {
-          eventCategory,
-          normalizedEventCategory,
-          selectedCategory,
-          normalizedSelectedCategory,
-          matches: normalizedEventCategory === normalizedSelectedCategory
-        });
         
         return normalizedEventCategory === normalizedSelectedCategory;
       });
-      console.log('After category filter:', filtered.length);
+    
     }
 
     // Apply tier filter
@@ -140,10 +128,10 @@ const EventPage = () => {
       
       const allowedTiers = tierHierarchy[selectedTier] || ['free'];
       filtered = filtered.filter(event => allowedTiers.includes(event.tier));
-      console.log('After tier filter:', filtered.length);
+  
     }
 
-    console.log('Final filtered events:', filtered.length);
+
     setFilteredEvents(filtered);
   };
 

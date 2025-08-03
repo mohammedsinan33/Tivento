@@ -41,7 +41,7 @@ export const getAllEvents = async (): Promise<{
       return { data: null, error };
     }
 
-    // Remove all debug console.logs from here
+
     return { data, error: null };
   } catch (error) {
     console.error("Error in getAllEvents:", error);

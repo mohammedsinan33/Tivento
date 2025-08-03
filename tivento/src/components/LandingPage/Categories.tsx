@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import { supabase } from '@/lib/supabase';
 
 interface CategoryWithStats {
@@ -109,16 +109,11 @@ const Categories = () => {
         .select('category, group');
 
       if (eventsError) throw eventsError;
-
-      console.log('Events data:', eventsData); // Debug log
-
       // Count events and unique groups for each category
       const categoryStats = baseCategoriesData.map(category => {
         const categoryEvents = eventsData?.filter(event => 
           event.category?.toLowerCase() === category.dbName.toLowerCase()
         ) || [];
-        
-        console.log(`Category ${category.name}:`, categoryEvents); // Debug log
         
         // Get unique groups (excluding null/undefined values)
         const uniqueGroups = new Set(
@@ -137,7 +132,6 @@ const Categories = () => {
       // Sort by event count in descending order
       const sortedCategories = categoryStats.sort((a, b) => b.eventCount - a.eventCount);
       
-      console.log('Sorted categories:', sortedCategories); // Debug log
       setCategories(sortedCategories);
     } catch (err: any) {
       console.error('Error fetching categories with stats:', err);

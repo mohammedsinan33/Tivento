@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import FormHeader from '@/components/EventForm/FormHeader';
 import BasicInformation from '@/components/EventForm/BasicInformation';
 import DateTimeSection from '@/components/EventForm/DateTimeSection';

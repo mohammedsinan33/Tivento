@@ -9,6 +9,7 @@ export default function SignInPage() {
           <p className="text-gray-600">Sign in to continue your journey</p>
         </div>
         <SignIn 
+          routing="hash"
           appearance={{
             elements: {
               formButtonPrimary: 

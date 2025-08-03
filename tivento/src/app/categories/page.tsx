@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import { supabase } from '@/lib/supabase';
 
 interface CategoryWithStats {

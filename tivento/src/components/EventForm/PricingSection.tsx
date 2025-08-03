@@ -43,6 +43,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ formData, onInputChange
             onChange={onInputChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
+             <option value="USD">INR</option>
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
             <option value="GBP">GBP</option>

@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import { useUserSync } from '@/pages/Authentication/useUserSync';
 
 const PremiumPage = () => {
@@ -87,6 +87,17 @@ const PremiumPage = () => {
       monthlyPrice: 0,
       annualPrice: 0,
       originalPrice: 799,
+      validation: {
+        required: true,
+        type: 'Student Verification',
+        requirements: [
+          'Valid student ID card',
+          'Educational institution enrollment proof',
+          'Current academic year verification',
+          'Age verification (18+ years)',
+          'Valid email from educational domain (.edu preferred)'
+        ]
+      },
       features: [
         'All Silver features at no cost',
         'Can only create Free events',
@@ -106,6 +117,17 @@ const PremiumPage = () => {
       monthlyPrice: 2399,
       annualPrice: 23999,
       originalPrice: 3199,
+      validation: {
+        required: true,
+        type: 'Professional Verification',
+        requirements: [
+          'Industry experience certificate (5+ years)',
+          'Professional LinkedIn profile verification',
+          'Company/Organization validation',
+          'References from industry professionals',
+          'Portfolio or work samples submission'
+        ]
+      },
       features: [
         'All Platinum features',
         'Mentor badge and verification',
@@ -140,6 +162,8 @@ const PremiumPage = () => {
     const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
     const originalPrice = plan.originalPrice;
     const isFree = price === 0;
+    const isCurrentPlan = status === 'current';
+    const isUpgrade = status === 'upgrade';
 
     return (
       <motion.div
@@ -150,9 +174,9 @@ const PremiumPage = () => {
           plan.popular ? 'transform scale-105 shadow-2xl' : 'shadow-lg'
         } hover:shadow-2xl transition-all duration-300 ${
           isFree ? 'ring-2 ring-green-400' : ''
-        }`}
+        } ${isCurrentPlan ? 'ring-2 ring-orange-400' : ''}`}
       >
-        {plan.popular && (
+        {plan.popular && !isCurrentPlan && (
           <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
             <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
               Most Popular
@@ -160,7 +184,15 @@ const PremiumPage = () => {
           </div>
         )}
 
-        {isFree && (
+        {isCurrentPlan && (
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+            <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
+              Current Plan
+            </span>
+          </div>
+        )}
+
+        {isFree && !isCurrentPlan && (
           <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
             <span className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
               100% Free
@@ -204,48 +236,87 @@ const PremiumPage = () => {
           )}
         </div>
 
-        <ul className="space-y-3 mb-8">
-          {plan.features.map((feature: string, index: number) => (
-            <li key={index} className="flex items-start">
-              <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              <span className="text-gray-700">{feature}</span>
-            </li>
-          ))}
-        </ul>
+        {/* Features Section - Always show */}
+        <div className="mb-6">
+          <h4 className="font-semibold text-gray-900 mb-3">Plan Features:</h4>
+          <ul className="space-y-3 mb-4">
+            {plan.features.map((feature: string, index: number) => (
+              <li key={index} className="flex items-start">
+                <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-gray-700">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        <button
-          className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
-            status === 'current'
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : status === 'downgrade'
-              ? 'bg-red-500 text-white hover:bg-red-600'
-              : isFree
-              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 transform hover:scale-105'
-              : 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transform hover:scale-105'
-          }`}
-          disabled={status === 'current'}
-        >
-          {status === 'current' ? 'Current Plan' : 
-           status === 'downgrade' ? 'Downgrade' : 
-           isFree ? 'Get Free Access' :
-           'Upgrade Now'}
-        </button>
-
-        {isSpecial && (
-          <div className={`mt-4 p-3 rounded-lg ${
-            isFree ? 'bg-green-100 border border-green-300' : 'bg-yellow-100 border border-yellow-300'
-          }`}>
-            <p className={`text-xs text-center ${
-              isFree ? 'text-green-800' : 'text-yellow-800'
+        {/* Validation Requirements for Special Plans - Always show if special */}
+        {isSpecial && plan.validation && (
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-900 mb-3">{plan.validation.type} Required:</h4>
+            <div className={`p-4 rounded-lg border ${
+              isFree ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
             }`}>
-              {planKey === 'student' ? 'Requires student verification' : 'Requires professional verification'}
+              <ul className="space-y-2">
+                {plan.validation.requirements.map((requirement: string, index: number) => (
+                  <li key={index} className="flex items-start">
+                    <svg className={`w-4 h-4 mr-2 mt-0.5 flex-shrink-0 ${
+                      isFree ? 'text-green-600' : 'text-yellow-600'
+                    }`} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className={`text-sm ${
+                      isFree ? 'text-green-800' : 'text-yellow-800'
+                    }`}>{requirement}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Button Container - Always present, but only show button for upgrades or current plan */}
+        <div className="mb-4">
+          {(isUpgrade || isCurrentPlan) && (
+            <button
+              className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
+                isCurrentPlan
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : isFree
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 transform hover:scale-105'
+                  : 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transform hover:scale-105'
+              }`}
+              disabled={isCurrentPlan}
+            >
+              {isCurrentPlan ? 'Current Plan' : 
+               isFree ? 'Apply for Free Access' :
+               'Upgrade Now'}
+            </button>
+          )}
+        </div>
+
+        {/* Additional info for special plans - Always show if special */}
+        {isSpecial && (
+          <div className={`p-3 rounded-lg ${
+            isFree ? 'bg-blue-100 border border-blue-300' : 'bg-indigo-100 border border-indigo-300'
+          }`}>
+            <p className={`text-xs text-center font-medium ${
+              isFree ? 'text-blue-800' : 'text-indigo-800'
+            }`}>
+              {planKey === 'student' ? 
+                '📚 Verification process takes 2-3 business days' : 
+                '🏆 Professional review process takes 5-7 business days'}
             </p>
           </div>
         )}
       </motion.div>
     );
+  };
+
+  // Remove the filtering - show all plans to display their features
+  const getAllPlans = (plansObj: any) => {
+    return Object.entries(plansObj);
   };
 
   return (
@@ -333,9 +404,9 @@ const PremiumPage = () => {
           </div>
         </motion.div>
 
-        {/* Main Plans */}
+        {/* Main Plans - Show all plans with features, but only show buttons for upgrades */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {Object.entries(plans).map(([key, plan], index) => (
+          {getAllPlans(plans).map(([key, plan], index) => (
             <motion.div
               key={key}
               initial={{ opacity: 0, y: 20 }}
@@ -347,7 +418,7 @@ const PremiumPage = () => {
           ))}
         </div>
 
-        {/* Special Plans Section */}
+        {/* Special Plans Section - Show all special plans with features */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -362,7 +433,7 @@ const PremiumPage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {Object.entries(specialPlans).map(([key, plan], index) => (
+            {getAllPlans(specialPlans).map(([key, plan], index) => (
               <motion.div
                 key={key}
                 initial={{ opacity: 0, y: 20 }}
@@ -487,17 +558,17 @@ const PremiumPage = () => {
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">
-                Can I change my plan anytime?
+                Can I upgrade my plan anytime?
               </h4>
               <p className="text-gray-600 mb-4">
-                Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.
+                Yes! You can upgrade your plan at any time. Upgrades take effect immediately and unlock new features.
               </p>
               
               <h4 className="font-semibold text-gray-900 mb-2">
-                What happens to my events if I downgrade?
+                What happens to my events after upgrading?
               </h4>
               <p className="text-gray-600 mb-4">
-                Your existing events remain active, but you won't be able to create new events above your tier level.
+                Your existing events remain active, and you'll gain access to new features and event types based on your upgraded plan.
               </p>
 
               <h4 className="font-semibold text-gray-900 mb-2">
@@ -510,10 +581,10 @@ const PremiumPage = () => {
             
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">
-                How do I get student or mentor verification?
+                How long does verification take?
               </h4>
               <p className="text-gray-600 mb-4">
-                Student verification requires a valid student ID. Mentor verification requires professional credentials and industry experience.
+                Student verification takes 2-3 business days, while professional mentor verification takes 5-7 business days for thorough review.
               </p>
               
               <h4 className="font-semibold text-gray-900 mb-2">
@@ -524,10 +595,10 @@ const PremiumPage = () => {
               </p>
 
               <h4 className="font-semibold text-gray-900 mb-2">
-                Is there a free trial?
+                What if my verification is rejected?
               </h4>
               <p className="text-gray-600">
-                Yes! New users get a 14-day free trial of Silver features to explore the platform.
+                We'll provide specific feedback and allow resubmission with corrected documentation. Our support team is here to help.
               </p>
             </div>
           </div>

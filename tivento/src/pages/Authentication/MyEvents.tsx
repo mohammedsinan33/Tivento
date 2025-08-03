@@ -173,7 +173,7 @@ const MyEvents = () => {
           </span>
           <button
             onClick={handleCreateEvent}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium rounded-lg transition-all duration-200"
+            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105"
           >
             Create New Event
           </button>
@@ -194,7 +194,7 @@ const MyEvents = () => {
           <p className="text-gray-600 mb-4">You haven't created any events yet.</p>
           <button
             onClick={handleCreateEvent}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium rounded-lg transition-all duration-200"
+            className="px-6 py-2 inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 text-white font-medium rounded-lg transition-all duration-200"
           >
             Create Your First Event
           </button>

@@ -131,7 +131,7 @@ const BasicInformation: React.FC<BasicInformationProps> = ({
             Event Tier *
             {showTierValidation && (
               <span className="text-xs text-gray-500 ml-2">
-                (Your {getTierDisplayName(userTier)} plan)
+                (Shows who can attend your event)
               </span>
             )}
           </label>
@@ -140,12 +140,9 @@ const BasicInformation: React.FC<BasicInformationProps> = ({
             value={formData.tier}
             onChange={onInputChange}
             required
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-              !tierValidation.allowed 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300'
-            }`}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
+            <option value="">Select event tier</option>
             <option value="free" className={getTierOptionColor('free')}>
               {getTierOptionText('free', '🆓', 'Free')}
             </option>
@@ -159,7 +156,7 @@ const BasicInformation: React.FC<BasicInformationProps> = ({
               {getTierOptionText('platinum', '💎', 'Platinum')}
             </option>
           </select>
-          
+
           {/* Special Student Information */}
           {showTierValidation && isStudent && (
             <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -210,13 +207,14 @@ const BasicInformation: React.FC<BasicInformationProps> = ({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Tags
+            Tags *
           </label>
           <input
             type="text"
             name="tags"
             value={formData.tags}
             onChange={onInputChange}
+            required
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             placeholder="e.g. networking, tech, beginner (comma separated)"
           />
@@ -224,13 +222,14 @@ const BasicInformation: React.FC<BasicInformationProps> = ({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Group/Community Name
+            Group/Community Name *
           </label>
           <input
             type="text"
             name="group"
             value={formData.group}
             onChange={onInputChange}
+            required
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             placeholder="e.g. Tech Enthusiasts, Business Network, Local Community"
           />
@@ -238,7 +237,7 @@ const BasicInformation: React.FC<BasicInformationProps> = ({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Max Attendees
+            Max Attendees *
           </label>
           <input
             type="number"
@@ -246,6 +245,7 @@ const BasicInformation: React.FC<BasicInformationProps> = ({
             value={formData.max_attendees}
             onChange={onInputChange}
             min="1"
+            required
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           />
         </div>

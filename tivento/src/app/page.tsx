@@ -10,8 +10,8 @@ import ProfilePage from '@/pages/Authentication/ProfilePage';
 import SignInPage from '@/pages/Authentication/SignInPage';
 import SignUpPage from '@/pages/Authentication/SignUpPage';
 import InvitedEventsPage from '@/pages/InvitedEventsPage';
-import Categories from '@/components/Categories';
-import CategoryPage from '@/components/CategoryPage';
+import Categories from '@/components/LandingPage/Categories';
+import CategoryPage from '@/components/LandingPage/CategoryPage';
 
 export default function Home() {
   const searchParams = useSearchParams();

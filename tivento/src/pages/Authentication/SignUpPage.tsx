@@ -9,6 +9,7 @@ export default function SignUpPage() {
           <p className="text-gray-600">Create your account and start connecting</p>
         </div>
         <SignUp 
+          routing="hash"
           appearance={{
             elements: {
               formButtonPrimary: 

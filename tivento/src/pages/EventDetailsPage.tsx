@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import { getEventById, Event } from '@/components/EventPage/Supabase';
 import { registerUserForEvent } from '@/components/EventForm/Supabase';
 import { useUserSync } from '@/pages/Authentication/useUserSync';
@@ -72,9 +72,8 @@ const EventDetailsPage = () => {
 
     // Check if user is signed in
     if (!isSignedIn) {
-      // Redirect to sign in with return URL to this event
-      const redirectReason = `register-${event.tier}-event`;
-      router.push(`/?page=premium&reason=${redirectReason}&redirect=sign-in`);
+      // Redirect to sign-in for non-authenticated users
+      window.location.href = '/?page=sign-in';
       return;
     }
 

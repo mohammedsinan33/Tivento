@@ -60,13 +60,14 @@ const DateTimeSection: React.FC<DateTimeSectionProps> = ({ formData, onInputChan
 
         <div className="md:col-span-3">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Registration Deadline
+            Registration Deadline *
           </label>
           <input
             type="datetime-local"
             name="registration_deadline"
             value={formData.registration_deadline}
             onChange={onInputChange}
+            required
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           />
         </div>

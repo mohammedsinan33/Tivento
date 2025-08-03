@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import { useUserSync } from '@/pages/Authentication/useUserSync';
 import { supabase } from '@/lib/supabase';
 
@@ -137,12 +137,6 @@ const InvitedEventsPage = () => {
       }
 
       // Refresh invitations
-      await fetchInvitedEvents();
-      
-      alert(status === 'accepted' 
-        ? '✅ Invitation accepted! You are now registered for this event.' 
-        : '❌ Invitation declined.'
-      );
 
     } catch (error) {
       console.error('Error handling invitation response:', error);

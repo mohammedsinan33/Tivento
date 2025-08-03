@@ -15,7 +15,6 @@ export interface UserProfile {
 // Check if user exists in Supabase
 export const getUserByClerkId = async (clerkUserId: string): Promise<{ data: UserProfile | null; error: any }> => {
   try {
-    console.log('🔍 Checking for existing user with Clerk ID:', clerkUserId);
     
     const { data, error } = await supabase
       .from('users')
@@ -23,17 +22,15 @@ export const getUserByClerkId = async (clerkUserId: string): Promise<{ data: Use
       .eq('clerk_user_id', clerkUserId)
       .single();
 
-    console.log('📊 Query result:', { data, error });
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('❌ Error fetching user:', error);
+      console.error('Error fetching user:', error);
       return { data: null, error };
     }
 
-    console.log('✅ User query completed:', data ? 'User found' : 'User not found');
     return { data: data || null, error: null };
   } catch (error) {
-    console.error('💥 Exception in getUserByClerkId:', error);
+    console.error('Exception in getUserByClerkId:', error);
     return { data: null, error };
   }
 };
@@ -41,8 +38,7 @@ export const getUserByClerkId = async (clerkUserId: string): Promise<{ data: Use
 // Create new user in Supabase
 export const createUser = async (userData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: UserProfile | null; error: any }> => {
   try {
-    console.log('🆕 Creating new user with data:', userData);
-    
+
     const { data, error } = await supabase
       .from('users')
       .insert([{
@@ -56,10 +52,8 @@ export const createUser = async (userData: Omit<UserProfile, 'id' | 'created_at'
       .select()
       .single();
 
-    console.log('📊 Insert result:', { data, error });
-
     if (error) {
-      console.error('❌ Error creating user:', error);
+      console.error('Error creating user:', error);
       console.error('Error details:', {
         code: error.code,
         message: error.message,
@@ -69,10 +63,9 @@ export const createUser = async (userData: Omit<UserProfile, 'id' | 'created_at'
       return { data: null, error };
     }
 
-    console.log('✅ User created successfully:', data);
     return { data, error: null };
   } catch (error) {
-    console.error('💥 Exception in createUser:', error);
+    console.error('Exception in createUser:', error);
     return { data: null, error };
   }
 };
@@ -80,8 +73,6 @@ export const createUser = async (userData: Omit<UserProfile, 'id' | 'created_at'
 // Update existing user in Supabase (preserves tier)
 export const updateUser = async (clerkUserId: string, updates: Partial<UserProfile>): Promise<{ data: UserProfile | null; error: any }> => {
   try {
-    console.log('📝 Updating user:', clerkUserId, 'with updates:', updates);
-    
     const { data, error } = await supabase
       .from('users')
       .update({
@@ -92,17 +83,15 @@ export const updateUser = async (clerkUserId: string, updates: Partial<UserProfi
       .select()
       .single();
 
-    console.log('📊 Update result:', { data, error });
 
     if (error) {
-      console.error('❌ Error updating user:', error);
+      console.error('Error updating user:', error);
       return { data: null, error };
     }
 
-    console.log('✅ User updated successfully:', data);
     return { data, error: null };
   } catch (error) {
-    console.error('💥 Exception in updateUser:', error);
+    console.error('Exception in updateUser:', error);
     return { data: null, error };
   }
 };
@@ -110,7 +99,6 @@ export const updateUser = async (clerkUserId: string, updates: Partial<UserProfi
 // Update user tier specifically (for premium upgrades)
 export const updateUserTier = async (clerkUserId: string, newTier: 'free' | 'silver' | 'gold' | 'platinum'): Promise<{ data: UserProfile | null; error: any }> => {
   try {
-    console.log('🔄 Updating user tier:', clerkUserId, 'to:', newTier);
     
     const { data, error } = await supabase
       .from('users')
@@ -123,14 +111,13 @@ export const updateUserTier = async (clerkUserId: string, newTier: 'free' | 'sil
       .single();
 
     if (error) {
-      console.error('❌ Error updating user tier:', error);
+      console.error('Error updating user tier:', error);
       return { data: null, error };
     }
 
-    console.log('✅ User tier updated successfully:', data);
     return { data, error: null };
   } catch (error) {
-    console.error('💥 Exception in updateUserTier:', error);
+    console.error('Exception in updateUserTier:', error);
     return { data: null, error };
   }
 };
@@ -138,20 +125,11 @@ export const updateUserTier = async (clerkUserId: string, newTier: 'free' | 'sil
 // Sync Clerk user with Supabase (preserves existing tier)
 export const syncUserWithSupabase = async (clerkUser: any): Promise<{ data: UserProfile | null; error: any }> => {
   try {
-    console.log('🔄 Starting user sync for Clerk user:', clerkUser.id);
-    console.log('👤 Clerk user details:', {
-      id: clerkUser.id,
-      firstName: clerkUser.firstName,
-      lastName: clerkUser.lastName,
-      username: clerkUser.username,
-      emails: clerkUser.emailAddresses?.map((e: any) => e.emailAddress)
-    });
-
     // Check if user exists
     const { data: existingUser, error: fetchError } = await getUserByClerkId(clerkUser.id);
     
     if (fetchError) {
-      console.error('❌ Error checking for existing user:', fetchError);
+      console.error('Error checking for existing user:', fetchError);
       return { data: null, error: fetchError };
     }
 
@@ -164,13 +142,8 @@ export const syncUserWithSupabase = async (clerkUser: any): Promise<{ data: User
       tier: 'free' as const, // Only used for NEW users
     };
 
-    console.log('📋 Prepared user data:', userData);
-
     if (existingUser) {
       // Update existing user - PRESERVE EXISTING TIER!
-      console.log('🔄 User exists, updating profile info only (preserving tier)...');
-      console.log('🎯 Current user tier:', existingUser.tier);
-      
       return await updateUser(clerkUser.id, {
         email: userData.email,
         first_name: userData.first_name,
@@ -180,11 +153,10 @@ export const syncUserWithSupabase = async (clerkUser: any): Promise<{ data: User
       });
     } else {
       // Create new user with default 'free' tier
-      console.log('🆕 User does not exist, creating with FREE tier...');
       return await createUser(userData);
     }
   } catch (error) {
-    console.error('💥 Exception in syncUserWithSupabase:', error);
+    console.error('Exception in syncUserWithSupabase:', error);
     return { data: null, error };
   }
 };

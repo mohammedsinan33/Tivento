@@ -1,8 +1,20 @@
 import React from 'react';
 import Link from 'next/link';
-
+import { useUser } from '@clerk/nextjs';
 
 const CreateGroupCTA = () => {
+  const { isSignedIn } = useUser();
+
+  const handleCreateGroup = () => {
+    if (!isSignedIn) {
+      // Redirect to sign-in if user is not authenticated
+      window.location.href = '/?page=sign-in';
+      return;
+    }
+    // If signed in, redirect to create event page
+    window.location.href = '/?page=create-event';
+  };
+
   return (
     <section className="py-20 bg-gradient-to-br from-orange-50 to-red-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,14 +57,16 @@ const CreateGroupCTA = () => {
                   <span className="text-gray-700 text-lg">Community support & resources</span>
                 </div>
               </div>
-              <Link href="/?page=create-event">
-                <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg inline-flex items-center">
-                  Create a group
-                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </Link>
+              
+              <button 
+                onClick={handleCreateGroup}
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg inline-flex items-center w-fit"
+              >
+                {isSignedIn ? 'Create a group' : 'Sign in to Create a Group'}
+                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
 
             {/* Image Side */}

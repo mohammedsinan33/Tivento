@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useUser, UserProfile } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import MyRegistrations from './MyRegistrations';
 import MyEvents from './MyEvents';
 

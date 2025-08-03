@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/components/LandingPage/Header';
+import Footer from '@/components/LandingPage/Footer';
 import EventCard from '@/components/EventPage/EventCard';
 import { supabase } from '@/lib/supabase';
 import { Event } from '@/components/EventPage/Supabase'; // Import the correct Event interface

@@ -55,26 +55,17 @@ const EventFilters: React.FC<EventFiltersProps> = ({
 
   // Debug effect to log filter changes
   React.useEffect(() => {
-    console.log('EventFilters Debug:', {
-      selectedCategory,
-      selectedTier,
-      searchTerm,
-      availableCategories: categories
-    });
   }, [selectedCategory, selectedTier, searchTerm]);
 
   const handleCategoryChange = (value: string) => {
-    console.log('Category changed from', selectedCategory, 'to', value);
     onCategoryChange(value);
   };
 
   const handleTierChange = (value: string) => {
-    console.log('Tier changed from', selectedTier, 'to', value);
     onTierChange(value);
   };
 
   const handleSearchChange = (value: string) => {
-    console.log('Search changed from', searchTerm, 'to', value);
     onSearchChange(value);
   };
 
