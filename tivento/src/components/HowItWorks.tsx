@@ -9,55 +9,69 @@ const HowItWorks = () => {
         </svg>
       ),
       title: 'Discover Events',
-      description: 'Explore groups and events for all your interests',
+      description: 'Browse thousands of events across different categories and tiers to find what excites you',
+      color: 'from-orange-500 to-red-500'
+    },
+    {
+      icon: (
+        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+        </svg>
+      ),
+      title: 'Join Events',
+      description: 'Register for events that match your interests and tier level - from free community events to premium experiences',
       color: 'from-blue-500 to-purple-600'
     },
     {
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
       ),
-      title: 'Join a Group',
-      description: 'Connect with people who share your passion',
+      title: 'Create Events',
+      description: 'Host your own events and build communities around your passions with our easy-to-use event creation tools',
       color: 'from-green-500 to-teal-600'
-    },
-    {
-      icon: (
-        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      ),
-      title: 'Start a Group',
-      description: 'Create your own group and host events',
-      color: 'from-orange-500 to-red-600'
     }
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-gradient-to-br from-gray-50 to-orange-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            How ConnectSphere Works
+            How Tivento Works
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Join millions of people using ConnectSphere to meet new people and do more of what they love.
+            Join thousands of people using Tivento to discover events, meet like-minded individuals, and create meaningful connections.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+        <div className="grid md:grid-cols-3 gap-8 lg:gap-12 relative">
           {steps.map((step, index) => (
-            <div key={index} className="text-center group">
-              <div className={`w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white transform group-hover:scale-110 transition-transform duration-200 shadow-lg`}>
+            <div key={index} className="text-center group relative">
+              {/* Step Number */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-white border-2 border-orange-500 rounded-full flex items-center justify-center text-orange-500 font-bold text-sm z-10">
+                {index + 1}
+              </div>
+              
+              {/* Icon Container */}
+              <div className={`w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white transform group-hover:scale-110 transition-all duration-300 shadow-lg group-hover:shadow-2xl`}>
                 {step.icon}
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">{step.title}</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">{step.description}</p>
               
-              {/* Connection Line (except for last item) */}
+              {/* Content */}
+              <div className="bg-white rounded-xl p-6 shadow-md group-hover:shadow-lg transition-shadow duration-300">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">{step.title}</h3>
+                <p className="text-gray-600 text-lg leading-relaxed">{step.description}</p>
+              </div>
+              
+              {/* Connection Arrow (except for last item) */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-12 left-1/2 w-24 h-0.5 bg-gradient-to-r from-gray-200 to-gray-300 transform translate-x-12"></div>
+                <div className="hidden md:block absolute top-12 -right-6 lg:-right-8 z-0">
+                  <svg className="w-12 h-8 text-orange-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v3.992h16.354l-6.176 6.176 2.847 2.828 10.975-11z"/>
+                  </svg>
+                </div>
               )}
             </div>
           ))}

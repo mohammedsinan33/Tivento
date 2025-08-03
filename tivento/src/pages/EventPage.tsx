@@ -190,15 +190,6 @@ const EventPage = () => {
           loading={loading}
           error={error}
         />
-        
-        {/* Load More Button */}
-        {!loading && filteredEvents.length > 0 && (
-          <div className="text-center mt-12">
-            <button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-200">
-              Load More Events
-            </button>
-          </div>
-        )}
       </main>
       
       <Footer />
