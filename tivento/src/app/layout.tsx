@@ -1,6 +1,7 @@
 import { type Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NotificationProvider } from "../components/Notifications/NotificationProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,12 +41,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider 
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      appearance={{
+        elements: {
+          formButtonPrimary: "bg-orange-600 hover:bg-orange-700",
+          footerActionLink: "text-orange-600 hover:text-orange-700"
+        }
+      }}
+    >
       <html lang="en">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </body>
       </html>
     </ClerkProvider>

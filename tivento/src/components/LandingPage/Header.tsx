@@ -3,15 +3,42 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
+import { Bell, User, Calendar, Settings, LogOut } from 'lucide-react';
+import { useNotifications } from '../Notifications/NotificationProvider';
 
 const Header = () => {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { isSignedIn, user } = useUser();
+  const { addNotification } = useNotifications();
 
   const handleNavigation = (page: string) => {
     router.push(`/?page=${page}`);
     setIsMenuOpen(false);
+    setIsProfileDropdownOpen(false);
+  };
+
+  const handleNotificationClick = () => {
+    addNotification({
+      type: 'info',
+      title: 'Notifications',
+      message: 'No new notifications at this time.',
+      duration: 3000
+    });
+  };
+
+  const getUserDisplayName = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    } else if (user?.firstName) {
+      return user.firstName;
+    } else if (user?.username) {
+      return user.username;
+    } else if (user?.emailAddresses && user.emailAddresses.length > 0) {
+      return user.emailAddresses[0].emailAddress.split('@')[0];
+    }
+    return 'User';
   };
 
   return (
@@ -62,33 +89,79 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {isSignedIn ? (
               <div className="flex items-center space-x-4">
-                {/* User Profile Link */}
+                {/* Notification Bell */}
                 <button
-                  onClick={() => handleNavigation('profile')}
-                  className="text-gray-700 hover:text-orange-600 transition-colors"
+                  onClick={handleNotificationClick}
+                  className="p-2 text-gray-700 hover:text-orange-600 hover:bg-gray-100 rounded-full transition-colors relative"
+                  title="Notifications"
                 >
-                  Profile
+                  <Bell className="h-5 w-5" />
+                  {/* Notification badge */}
+                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
                 </button>
-                {/* My Events Link */}
-                <button
-                  onClick={() => handleNavigation('my-events')}
-                  className="text-gray-700 hover:text-orange-600 transition-colors"
-                >
-                  My Events
-                </button>
-                {/* User Button with Avatar */}
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8",
-                      userButtonPopoverCard: "shadow-lg",
-                      userButtonPopoverActionButton: "hover:bg-orange-50"
-                    }
-                  }}
-                  showName={false}
-                  userProfileMode="navigation"
-                  userProfileUrl="/?page=profile"
-                />
+
+                {/* User Profile Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center space-x-2 p-2 text-gray-700 hover:text-orange-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <UserButton 
+                        appearance={{
+                          elements: {
+                            avatarBox: "w-8 h-8",
+                            userButtonPopoverCard: "hidden"
+                          }
+                        }}
+                        showName={false}
+                      />
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm font-medium text-gray-900">
+                          Hi, {getUserDisplayName()}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {user?.emailAddresses?.[0]?.emailAddress}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isProfileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <button
+                        onClick={() => handleNavigation('profile')}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600"
+                      >
+                        <User className="h-4 w-4 mr-3" />
+                        Profile Settings
+                      </button>
+                      <button
+                        onClick={() => handleNavigation('my-events')}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600"
+                      >
+                        <Calendar className="h-4 w-4 mr-3" />
+                        My Events
+                      </button>
+                      <button
+                        onClick={() => handleNavigation('my-registrations')}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600"
+                      >
+                        <Calendar className="h-4 w-4 mr-3" />
+                        My Registrations
+                      </button>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <button
+                        onClick={() => handleNavigation('settings')}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600"
+                      >
+                        <Settings className="h-4 w-4 mr-3" />
+                        Settings
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
@@ -165,9 +238,14 @@ const Header = () => {
                         }}
                         showName={false}
                       />
-                      <span className="text-gray-900 font-medium">
-                        {user?.firstName || user?.emailAddresses[0]?.emailAddress}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-gray-900 font-medium text-sm">
+                          {getUserDisplayName()}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {user?.emailAddresses?.[0]?.emailAddress}
+                        </span>
+                      </div>
                     </div>
                     <button
                       onClick={() => handleNavigation('profile')}
@@ -180,6 +258,12 @@ const Header = () => {
                       className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md"
                     >
                       My Events
+                    </button>
+                    <button
+                      onClick={() => handleNavigation('my-registrations')}
+                      className="block w-full text-left px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-md"
+                    >
+                      My Registrations
                     </button>
                   </div>
                 ) : (
