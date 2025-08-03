@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PageHeader from '@/components/EventPage/PageHeader';
@@ -12,6 +13,7 @@ import {
 } from '@/components/EventPage/Supabase';
 
 const EventPage = () => {
+  const searchParams = useSearchParams();
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +23,29 @@ const EventPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [selectedTier, setSelectedTier] = useState('All Tiers');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    const urlSearch = searchParams?.get('search') || '';
+    const urlLocation = searchParams?.get('location') || '';
+    const urlCategory = searchParams?.get('category') || '';
+    
+    // Set initial search term from URL
+    if (urlSearch) {
+      setSearchTerm(urlSearch);
+    }
+    
+    // Set initial category from URL
+    if (urlCategory) {
+      setSelectedCategory(urlCategory);
+    }
+    
+    // Handle location parameter - you might want to add location filtering later
+    // For now, we'll include it in the search term if no specific search was provided
+    if (urlLocation && !urlSearch) {
+      setSearchTerm(urlLocation);
+    }
+  }, [searchParams]);
 
   // Fetch all events on component mount
   useEffect(() => {
@@ -63,11 +88,23 @@ const EventPage = () => {
     // Apply search filter first
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(event => 
-        event.title.toLowerCase().includes(searchLower) ||
-        event.description.toLowerCase().includes(searchLower) ||
-        (event.tags && event.tags.toLowerCase().includes(searchLower))
-      );
+      filtered = filtered.filter(event => {
+        // Cast event to any to access fields that might not be in the interface
+        const eventWithExtraFields = event as any;
+        
+        return (
+          event.title.toLowerCase().includes(searchLower) ||
+          event.description.toLowerCase().includes(searchLower) ||
+          (event.tags && event.tags.toLowerCase().includes(searchLower)) ||
+          // Also search in location fields
+          (event.venue_name && event.venue_name.toLowerCase().includes(searchLower)) ||
+          (event.Address && event.Address.toLowerCase().includes(searchLower)) ||
+          // Search in group field (using type assertion)
+          (eventWithExtraFields.group && eventWithExtraFields.group.toLowerCase().includes(searchLower)) ||
+          // Search in category field (using type assertion for different possible field names)
+          (eventWithExtraFields.category && eventWithExtraFields.category.toLowerCase().includes(searchLower))
+        );
+      });
       console.log('After search filter:', filtered.length);
     }
 
@@ -157,13 +194,13 @@ const EventPage = () => {
         {/* Load More Button */}
         {!loading && filteredEvents.length > 0 && (
           <div className="text-center mt-12">
-            <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+            <button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-200">
               Load More Events
             </button>
           </div>
         )}
       </main>
-
+      
       <Footer />
     </div>
   );
