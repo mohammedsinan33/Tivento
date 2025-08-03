@@ -6,6 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getEventById, Event } from '@/components/EventPage/Supabase';
+import { registerUserForEvent } from '@/components/EventForm/Supabase';
 import { useUserSync } from '@/pages/Authentication/useUserSync';
 import { canRegisterForEvent, getTierDisplayName, getRedirectReason, EventTier, UserTier } from '@/lib/tierUtils';
 
@@ -13,6 +14,8 @@ const EventDetailsPage = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isSignedIn } = useUser();
@@ -22,8 +25,9 @@ const EventDetailsPage = () => {
   useEffect(() => {
     if (eventId) {
       fetchEventDetails();
+      checkRegistrationStatus();
     }
-  }, [eventId]);
+  }, [eventId, supabaseUser]);
 
   const fetchEventDetails = async () => {
     if (!eventId) return;
@@ -40,6 +44,26 @@ const EventDetailsPage = () => {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkRegistrationStatus = async () => {
+    if (!eventId || !supabaseUser?.email) return;
+
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      const { data } = await supabase
+        .from('event_registrations')
+        .select('*')
+        .eq('event_id', parseInt(eventId))
+        .eq('user_email', supabaseUser.email)
+        .eq('registration_status', 'registered')
+        .single();
+
+      setIsRegistered(!!data);
+    } catch (err) {
+      // User not registered yet
+      setIsRegistered(false);
     }
   };
 
@@ -74,10 +98,57 @@ const EventDetailsPage = () => {
     handleEventRegistration();
   };
 
-  const handleEventRegistration = () => {
-    // TODO: Implement actual registration logic here
-    // For now, just show a success message
-    alert(`✅ Successfully registered for "${event?.title}"!\n\nRegistration confirmation will be sent to your email.`);
+  const handleEventRegistration = async () => {
+    if (!event || !supabaseUser?.email) {
+      console.error('Missing event or user email');
+      return;
+    }
+
+    setRegistering(true);
+
+    try {
+      const result = await registerUserForEvent(
+        event.UUID, // UUID is already a number
+        supabaseUser.email
+      );
+
+      if (result.success) {
+        setIsRegistered(true);
+        alert(`✅ Successfully registered for "${event.title}"!\n\nRegistration confirmation will be sent to your email.`);
+        // Refresh registration status
+        await checkRegistrationStatus();
+      } else {
+        // Handle different error types properly
+        let errorMessage = 'Registration failed';
+        
+        if (typeof result.error === 'string') {
+          errorMessage = result.error;
+        } else if (result.error?.message) {
+          errorMessage = result.error.message;
+        } else if (result.error?.code) {
+          errorMessage = `Database error: ${result.error.code}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      // Properly handle different error types
+      let errorMessage = 'Failed to register for event';
+      
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.error) {
+        errorMessage = typeof error.error === 'string' ? error.error : 'Registration failed';
+      }
+      
+      alert(`❌ Registration failed: ${errorMessage}`);
+    } finally {
+      setRegistering(false);
+    }
   };
 
   const getRegisterButtonText = (): string => {
@@ -87,6 +158,14 @@ const EventDetailsPage = () => {
 
     if (syncLoading || !supabaseUser) {
       return 'Loading...';
+    }
+
+    if (registering) {
+      return 'Registering...';
+    }
+
+    if (isRegistered) {
+      return '✅ Already Registered';
     }
 
     if (!event) {
@@ -105,6 +184,14 @@ const EventDetailsPage = () => {
 
   const getRegisterButtonStyle = (): string => {
     const baseStyle = "flex-1 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg";
+    
+    if (isRegistered) {
+      return `${baseStyle} bg-green-500 text-white cursor-not-allowed opacity-75`;
+    }
+
+    if (registering) {
+      return `${baseStyle} bg-gray-400 text-white cursor-not-allowed`;
+    }
     
     if (!isSignedIn || syncLoading || !supabaseUser) {
       return `${baseStyle} bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white`;
@@ -127,21 +214,50 @@ const EventDetailsPage = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    if (!dateString) return 'Date TBD';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
   };
 
   const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(":");
-    const hour24 = parseInt(hours);
-    const hour12 = hour24 % 12 || 12;
-    const ampm = hour24 >= 12 ? "PM" : "AM";
-    return `${hour12}:${minutes} ${ampm}`;
+    // Add null/undefined check
+    if (!timeString || timeString === null || timeString === undefined) {
+      return 'Time TBD';
+    }
+
+    try {
+      // Ensure timeString is a string and contains ':'
+      const timeStr = String(timeString);
+      if (!timeStr.includes(':')) {
+        return 'Invalid Time';
+      }
+
+      const [hours, minutes] = timeStr.split(":");
+      const hour24 = parseInt(hours);
+      
+      // Check if parsing was successful
+      if (isNaN(hour24)) {
+        return 'Invalid Time';
+      }
+
+      const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+      const ampm = hour24 >= 12 ? "PM" : "AM";
+      return `${hour12}:${minutes || '00'} ${ampm}`;
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return 'Invalid Time';
+    }
   };
 
   const getTierColor = (tier: string) => {
@@ -187,12 +303,12 @@ const EventDetailsPage = () => {
           <div className="text-center">
             <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
               <h3 className="text-lg font-medium text-red-900 mb-2">Event Not Found</h3>
-              <p className="text-red-700">{error || 'The event you are looking for does not exist.'}</p>
+              <p className="text-red-700 mb-4">{error || 'The event you are looking for does not exist.'}</p>
               <button 
-                onClick={() => window.history.back()} 
-                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                onClick={() => router.push('/?page=events')}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
               >
-                Go Back
+                Back to Events
               </button>
             </div>
           </div>
@@ -207,10 +323,9 @@ const EventDetailsPage = () => {
       <Header />
       
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Back Button */}
-        <button 
-          onClick={() => window.history.back()}
-          className="mb-6 flex items-center text-orange-600 hover:text-orange-700 font-medium"
+        <button
+          onClick={() => router.back()}
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -250,6 +365,15 @@ const EventDetailsPage = () => {
                 {event.is_online ? "Online Event" : "In-Person Event"}
               </span>
             </div>
+
+            {/* Registration Status Badge */}
+            {isRegistered && (
+              <div className="absolute bottom-6 right-6">
+                <span className="px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                  ✅ You're Registered
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="p-8">
@@ -269,8 +393,29 @@ const EventDetailsPage = () => {
               {event.title}
             </h1>
 
+            {/* Registration Status Notice */}
+            {isRegistered && supabaseUser && (
+              <div className="mb-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <svg className="h-5 w-5 text-green-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-green-800 font-medium">
+                        ✅ You're registered for this event!
+                      </p>
+                      <p className="text-xs text-green-700 mt-1">
+                        Registered as: {supabaseUser.first_name} {supabaseUser.last_name} ({supabaseUser.email})
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Tier Access Notice */}
-            {isSignedIn && supabaseUser && !syncLoading && (
+            {isSignedIn && supabaseUser && !syncLoading && !isRegistered && (
               <div className="mb-6">
                 {canRegisterForEvent(supabaseUser.tier as UserTier, event.tier.toLowerCase() as EventTier) ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -425,7 +570,7 @@ const EventDetailsPage = () => {
               <button 
                 onClick={handleRegister}
                 className={getRegisterButtonStyle()}
-                disabled={syncLoading}
+                disabled={syncLoading || registering || isRegistered}
               >
                 {getRegisterButtonText()}
               </button>
@@ -433,6 +578,21 @@ const EventDetailsPage = () => {
                 Share Event
               </button>
             </div>
+
+            {/* User Profile Info for Registration */}
+            {isSignedIn && supabaseUser && !isRegistered && (
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2">🎫 Registration Details</h4>
+                <div className="text-sm text-blue-800 space-y-1">
+                  <p><strong>Name:</strong> {supabaseUser.first_name} {supabaseUser.last_name}</p>
+                  <p><strong>Email:</strong> {supabaseUser.email}</p>
+                  <p><strong>Plan:</strong> {getTierDisplayName(supabaseUser.tier as UserTier)}</p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    ℹ️ Your registration will use the above profile information
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Event ID for debugging */}
             <div className="mt-6 p-3 bg-gray-50 rounded-lg">

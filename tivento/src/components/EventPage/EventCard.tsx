@@ -32,11 +32,17 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   };
 
   const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(":");
-    const hour24 = parseInt(hours);
-    const hour12 = hour24 % 12 || 12;
-    const ampm = hour24 >= 12 ? "PM" : "AM";
-    return `${hour12}:${minutes} ${ampm}`;
+    if (!timeString) return "Time TBD";
+
+    try {
+      const [hours, minutes] = timeString.split(":");
+      const hour24 = parseInt(hours);
+      const hour12 = hour24 % 12 || 12;
+      const ampm = hour24 >= 12 ? "PM" : "AM";
+      return `${hour12}:${minutes || "00"} ${ampm}`;
+    } catch (error) {
+      return "Invalid Time";
+    }
   };
 
   return (

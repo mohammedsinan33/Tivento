@@ -7,6 +7,9 @@ import EventPage from '@/pages/EventPage';
 import EventDetailsPage from '@/pages/EventDetailsPage';
 import PremiumPage from '@/pages/PremiumPage';
 import ProfilePage from '@/pages/Authentication/ProfilePage';
+import SignInPage from '@/pages/Authentication/SignInPage';
+import SignUpPage from '@/pages/Authentication/SignUpPage';
+import InvitedEventsPage from '@/pages/InvitedEventsPage';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -31,6 +34,18 @@ export default function Home() {
 
   if (page === 'profile') {
     return <ProfilePage />;
+  }
+
+  if (page === 'sign-in') {
+    return <SignInPage />;
+  }
+
+  if (page === 'sign-up') {
+    return <SignUpPage />;
+  }
+
+  if (page === 'invited-events') {
+    return <InvitedEventsPage />;
   }
 
   return <LandingPage />;
