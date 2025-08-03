@@ -13,7 +13,7 @@ import AdditionalDetails from '@/components/EventForm/AdditionalDetails';
 import ImageUpload from '@/components/EventForm/ImageUpload';
 import FormActions from '@/components/EventForm/FormActions';
 import { handleEventCreation } from '@/components/EventForm/Supabase'; // Import the correct function
-import { useUserSync } from '@/pages/Authentication/useUserSync';
+import { useUserSync } from '@/lib/auth/useUserSync';
 import { validateEventCreation, canCreateEvents, EventTier, getUserTierStatus } from '@/lib/tierUtils';
 
 interface EventFormData {

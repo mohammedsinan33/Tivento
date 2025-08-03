@@ -7,7 +7,7 @@ import Header from '@/components/LandingPage/Header';
 import Footer from '@/components/LandingPage/Footer';
 import { getEventById, Event } from '@/components/EventPage/Supabase';
 import { registerUserForEvent } from '@/components/EventForm/Supabase';
-import { useUserSync } from '@/pages/Authentication/useUserSync';
+import { useUserSync } from '@/lib/auth/useUserSync';
 import { canRegisterForEvent, getTierDisplayName, getRedirectReason, EventTier, UserTier } from '@/lib/tierUtils';
 
 const EventDetailsPage = () => {

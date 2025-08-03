@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/LandingPage/Header';
 import Footer from '@/components/LandingPage/Footer';
-import { useUserSync } from '@/pages/Authentication/useUserSync';
+import { useUserSync } from '@/lib/auth/useUserSync';
 import { supabase } from '@/lib/supabase';
 
 // Event interface

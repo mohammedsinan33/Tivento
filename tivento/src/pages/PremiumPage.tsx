@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
 import Header from '@/components/LandingPage/Header';
 import Footer from '@/components/LandingPage/Footer';
-import { useUserSync } from '@/pages/Authentication/useUserSync';
+import { useUserSync } from '@/lib/auth/useUserSync';
 
 const PremiumPage = () => {
   const { isSignedIn, user } = useUser();

@@ -2,7 +2,7 @@
 
 import { useUser } from '@clerk/nextjs';
 import { useEffect, useState, useCallback } from 'react';
-import { syncUserWithSupabase, UserProfile } from '@/pages/Authentication/userManagement';
+import { syncUserWithSupabase, UserProfile } from '@/lib/auth/userManagement';
 
 export const useUserSync = () => {
   const { user, isLoaded, isSignedIn } = useUser();

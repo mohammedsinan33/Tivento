@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
-import { useUserSync } from '@/pages/Authentication/useUserSync';
+import { useUserSync } from '@/lib/auth/useUserSync';
 import { canRegisterForEvent } from '@/lib/tierUtils';
 import { supabase } from '@/lib/supabase';
 
