@@ -3,14 +3,17 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
-import { Bell, User, Calendar, Settings, LogOut } from 'lucide-react';
+import { Bell, User, Calendar, Settings, Crown } from 'lucide-react';
 import { useNotifications } from '../Notifications/NotificationProvider';
+import { useUserTier } from '@/lib/auth/useUserTier';
+import { getTierDisplayName, getTierColor, getTierIcon } from '@/lib/tierUtils';
 
 const Header = () => {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { isSignedIn, user } = useUser();
+  const { userTier, loading: tierLoading } = useUserTier();
   const { addNotification } = useNotifications();
 
   const handleNavigation = (page: string) => {
@@ -104,9 +107,9 @@ const Header = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center space-x-2 p-2 text-gray-700 hover:text-orange-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="flex items-center space-x-3 p-2 text-gray-700 hover:text-orange-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3">
                       <UserButton 
                         appearance={{
                           elements: {
@@ -117,9 +120,17 @@ const Header = () => {
                         showName={false}
                       />
                       <div className="flex flex-col items-start">
-                        <span className="text-sm font-medium text-gray-900">
-                          Hi, {getUserDisplayName()}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900">
+                            Hi, {getUserDisplayName()}
+                          </span>
+                          {!tierLoading && (
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getTierColor(userTier)}`}>
+                              <span className="mr-1">{getTierIcon(userTier)}</span>
+                              {getTierDisplayName(userTier)}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-500">
                           {user?.emailAddresses?.[0]?.emailAddress}
                         </span>
@@ -129,7 +140,38 @@ const Header = () => {
 
                   {/* Dropdown Menu */}
                   {isProfileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      {/* User Info Header */}
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <div className="flex items-center space-x-3">
+                          <UserButton 
+                            appearance={{
+                              elements: {
+                                avatarBox: "w-10 h-10"
+                              }
+                            }}
+                            showName={false}
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              {getUserDisplayName()}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {user?.emailAddresses?.[0]?.emailAddress}
+                            </p>
+                            {!tierLoading && (
+                              <div className="mt-1">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getTierColor(userTier)}`}>
+                                  <span className="mr-1">{getTierIcon(userTier)}</span>
+                                  {getTierDisplayName(userTier)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Menu Items */}
                       <button
                         onClick={() => handleNavigation('profile')}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600"
@@ -152,6 +194,15 @@ const Header = () => {
                         My Registrations
                       </button>
                       <div className="border-t border-gray-100 my-1"></div>
+                      {userTier === 'free' && (
+                        <button
+                          onClick={() => handleNavigation('premium')}
+                          className="flex items-center w-full px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 font-medium"
+                        >
+                          <Crown className="h-4 w-4 mr-3" />
+                          Upgrade to Premium
+                        </button>
+                      )}
                       <button
                         onClick={() => handleNavigation('settings')}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600"
@@ -238,10 +289,18 @@ const Header = () => {
                         }}
                         showName={false}
                       />
-                      <div className="flex flex-col">
-                        <span className="text-gray-900 font-medium text-sm">
-                          {getUserDisplayName()}
-                        </span>
+                      <div className="flex flex-col flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-900 font-medium text-sm">
+                            {getUserDisplayName()}
+                          </span>
+                          {!tierLoading && (
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getTierColor(userTier)}`}>
+                              <span className="mr-1">{getTierIcon(userTier)}</span>
+                              {getTierDisplayName(userTier)}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-500">
                           {user?.emailAddresses?.[0]?.emailAddress}
                         </span>
@@ -265,6 +324,14 @@ const Header = () => {
                     >
                       My Registrations
                     </button>
+                    {userTier === 'free' && (
+                      <button
+                        onClick={() => handleNavigation('premium')}
+                        className="block w-full text-left px-3 py-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md font-medium"
+                      >
+                        🚀 Upgrade to Premium
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-2">
