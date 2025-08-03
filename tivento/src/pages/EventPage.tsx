@@ -8,7 +8,6 @@ import EventFilters from '@/components/EventPage/EventFilters';
 import EventList from '@/components/EventPage/EventList';
 import { 
   getAllEvents, 
-  searchEvents, 
   Event 
 } from '@/components/EventPage/Supabase';
 
@@ -25,33 +24,31 @@ const EventPage = () => {
 
   // Fetch all events on component mount
   useEffect(() => {
-    fetchAllEvents();
+    const fetchEvents = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await getAllEvents();
+        if (error) {
+          console.error('Error fetching events:', error);
+          setError('Failed to load events');
+        } else {
+          setAllEvents(data || []);
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        setError('An unexpected error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
   }, []);
 
   // Apply filters whenever filter states change
   useEffect(() => {
     applyFilters();
   }, [allEvents, selectedCategory, selectedTier, searchTerm]);
-
-  const fetchAllEvents = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const { data, error } = await getAllEvents();
-      
-      if (error) {
-        setError('Failed to load events. Please try again.');
-        return;
-      }
-      
-      setAllEvents(data || []);
-    } catch (err) {
-      setError('An unexpected error occurred.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const applyFilters = () => {
     let filtered = [...allEvents];

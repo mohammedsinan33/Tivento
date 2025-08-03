@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -13,6 +13,8 @@ import AdditionalDetails from '@/components/EventForm/AdditionalDetails';
 import ImageUpload from '@/components/EventForm/ImageUpload';
 import FormActions from '@/components/EventForm/FormActions';
 import { createEventInDatabase } from '@/components/EventForm/Supabase';
+import { useUserSync } from '@/pages/Authentication/useUserSync';
+import { validateEventCreation, canCreateEvents, EventTier } from '@/lib/tierUtils';
 
 interface EventFormData {
   title: string;
@@ -40,6 +42,8 @@ interface EventFormData {
 
 const CreateEventPage = () => {
   const router = useRouter();
+  const { supabaseUser, syncLoading } = useUserSync();
+  
   const [formData, setFormData] = useState<EventFormData>({
     title: '',
     description: '',
@@ -67,6 +71,18 @@ const CreateEventPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [tierValidationError, setTierValidationError] = useState<string>('');
+
+  // Check if user has permission to access this page
+  useEffect(() => {
+    if (!syncLoading && supabaseUser) {
+      if (!canCreateEvents(supabaseUser.tier as any)) {
+        // Redirect to premium page if user cannot create events
+        router.push('/?page=premium&reason=create-event');
+        return;
+      }
+    }
+  }, [supabaseUser, syncLoading, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -87,6 +103,11 @@ const CreateEventPage = () => {
         ...prev,
         [name]: value
       }));
+    }
+
+    // Clear tier validation error when tier changes
+    if (name === 'tier') {
+      setTierValidationError('');
     }
   };
 
@@ -111,6 +132,27 @@ const CreateEventPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate tier permissions before submission
+    if (supabaseUser) {
+      const validation = validateEventCreation(
+        supabaseUser.tier as any, 
+        formData.tier as EventTier
+      );
+      
+      if (!validation.allowed) {
+        setTierValidationError(validation.upgradeMessage || validation.error || '');
+        
+        // Redirect to premium page with specific reason
+        const redirectReason = formData.tier === 'free' 
+          ? 'create-event' 
+          : `create-${formData.tier}-event`;
+        
+        router.push(`/?page=premium&reason=${redirectReason}`);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -122,7 +164,6 @@ const CreateEventPage = () => {
 
       alert('Event created successfully!');
       router.push('/');
-      
     } catch (error: any) {
       console.error('Error creating event:', error);
       alert('Error creating event: ' + error.message);
@@ -135,6 +176,21 @@ const CreateEventPage = () => {
     alert('Draft functionality will be implemented soon!');
   };
 
+  // Show loading while checking user permissions
+  if (syncLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+          <p className="text-gray-600 mt-4">Checking your permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -143,10 +199,28 @@ const CreateEventPage = () => {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <FormHeader />
 
+          {/* Tier Validation Error Display */}
+          {tierValidationError && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 mx-8 mt-6">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{tierValidationError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
             <BasicInformation 
               formData={formData} 
-              onInputChange={handleInputChange} 
+              onInputChange={handleInputChange}
+              userTier={supabaseUser?.tier as any}
+              showTierValidation={true}
             />
             
             <DateTimeSection 

@@ -7,10 +7,6 @@ interface EventCardProps {
 }
 
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
-  // Debug: Log the event to see its structure
-  console.log("EventCard received event:", event);
-  console.log("Event keys:", Object.keys(event));
-  console.log("Event ID:", event.id, "Type:", typeof event.id);
   const getTierColor = (tier: string) => {
     switch (tier) {
       case "free":
@@ -96,7 +92,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
             {event.Catogory}
           </span>
           <span className="text-sm text-gray-500">
-            ${event.price === 0 ? "Free" : event.price}
+            {event.price === 0 ? "Free" : `${event.Currency} ${event.price}`}
           </span>
         </div>
 
@@ -134,7 +130,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
           </span>
         </div>
 
-        {/* Attendees */}
+        {/* Attendees and View Details Button */}
         <div className="flex items-center justify-between">
           <div className="flex items-center text-gray-500">
             <svg
@@ -152,8 +148,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
             </svg>
             <span className="text-sm">Max {event.max_attendees} attendees</span>
           </div>
-
-          <Link href={`/event/${event.id}`}>
+          <Link href={`/?page=event-details&id=${event.UUID}`}>
             <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 transform hover:scale-105">
               View Details
             </button>

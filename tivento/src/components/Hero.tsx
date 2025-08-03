@@ -8,8 +8,7 @@ const Hero = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle search logic here
-    console.log('Searching for:', keyword, 'in', location);
+    // Add your search logic here
   };
 
   return (

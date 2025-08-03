@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { syncUserWithSupabase, UserProfile } from '@/pages/Authentication/userManagement';
 
 export const useUserSync = () => {
@@ -10,33 +10,33 @@ export const useUserSync = () => {
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const syncUser = async () => {
-      if (isLoaded && isSignedIn && user) {
-        setSyncLoading(true);
-        setSyncError(null);
+  const syncUser = useCallback(async () => {
+    if (user && isLoaded) {
+      setSyncLoading(true);
+      setSyncError(null);
 
-        try {
-          const { data, error } = await syncUserWithSupabase(user);
-          
-          if (error) {
-            setSyncError('Failed to sync user data');
-            console.error('User sync error:', error);
-          } else {
-            setSupabaseUser(data);
-            console.log('User synced successfully:', data);
-          }
-        } catch (error) {
+      try {
+        const { data, error } = await syncUserWithSupabase(user);
+        
+        if (error) {
           setSyncError('Failed to sync user data');
           console.error('User sync error:', error);
-        } finally {
-          setSyncLoading(false);
+        } else {
+          setSupabaseUser(data);
+          // Remove console.log('User synced successfully:', data);
         }
+      } catch (error) {
+        setSyncError('Failed to sync user data');
+        console.error('User sync error:', error);
+      } finally {
+        setSyncLoading(false);
       }
-    };
+    }
+  }, [user, isLoaded]);
 
+  useEffect(() => {
     syncUser();
-  }, [isLoaded, isSignedIn, user]);
+  }, [syncUser]);
 
   return {
     supabaseUser,

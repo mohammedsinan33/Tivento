@@ -51,7 +51,7 @@ export const createUser = async (userData: Omit<UserProfile, 'id' | 'created_at'
         first_name: userData.first_name,
         last_name: userData.last_name,
         username: userData.username,
-        tier: userData.tier || 'free', // Default to free tier
+        tier: userData.tier || 'free', // Default to free tier for NEW users only
       }])
       .select()
       .single();
@@ -77,7 +77,7 @@ export const createUser = async (userData: Omit<UserProfile, 'id' | 'created_at'
   }
 };
 
-// Update existing user in Supabase
+// Update existing user in Supabase (preserves tier)
 export const updateUser = async (clerkUserId: string, updates: Partial<UserProfile>): Promise<{ data: UserProfile | null; error: any }> => {
   try {
     console.log('📝 Updating user:', clerkUserId, 'with updates:', updates);
@@ -107,7 +107,35 @@ export const updateUser = async (clerkUserId: string, updates: Partial<UserProfi
   }
 };
 
-// Sync Clerk user with Supabase
+// Update user tier specifically (for premium upgrades)
+export const updateUserTier = async (clerkUserId: string, newTier: 'free' | 'silver' | 'gold' | 'platinum'): Promise<{ data: UserProfile | null; error: any }> => {
+  try {
+    console.log('🔄 Updating user tier:', clerkUserId, 'to:', newTier);
+    
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        tier: newTier,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('clerk_user_id', clerkUserId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error updating user tier:', error);
+      return { data: null, error };
+    }
+
+    console.log('✅ User tier updated successfully:', data);
+    return { data, error: null };
+  } catch (error) {
+    console.error('💥 Exception in updateUserTier:', error);
+    return { data: null, error };
+  }
+};
+
+// Sync Clerk user with Supabase (preserves existing tier)
 export const syncUserWithSupabase = async (clerkUser: any): Promise<{ data: UserProfile | null; error: any }> => {
   try {
     console.log('🔄 Starting user sync for Clerk user:', clerkUser.id);
@@ -133,23 +161,26 @@ export const syncUserWithSupabase = async (clerkUser: any): Promise<{ data: User
       first_name: clerkUser.firstName || '',
       last_name: clerkUser.lastName || '',
       username: clerkUser.username || clerkUser.emailAddresses?.[0]?.emailAddress.split('@')[0] || '',
-      tier: 'free' as const,
+      tier: 'free' as const, // Only used for NEW users
     };
 
     console.log('📋 Prepared user data:', userData);
 
     if (existingUser) {
-      // Update existing user
-      console.log('🔄 User exists, updating...');
+      // Update existing user - PRESERVE EXISTING TIER!
+      console.log('🔄 User exists, updating profile info only (preserving tier)...');
+      console.log('🎯 Current user tier:', existingUser.tier);
+      
       return await updateUser(clerkUser.id, {
         email: userData.email,
         first_name: userData.first_name,
         last_name: userData.last_name,
         username: userData.username,
+        // DO NOT UPDATE TIER - preserve existing tier from database
       });
     } else {
-      // Create new user
-      console.log('🆕 User does not exist, creating...');
+      // Create new user with default 'free' tier
+      console.log('🆕 User does not exist, creating with FREE tier...');
       return await createUser(userData);
     }
   } catch (error) {

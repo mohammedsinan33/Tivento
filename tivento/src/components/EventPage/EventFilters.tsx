@@ -55,25 +55,17 @@ const EventFilters: React.FC<EventFiltersProps> = ({
 
   // Fixed: Only include the actual state values in dependency array
   React.useEffect(() => {
-    console.log('🔍 FILTER DEBUGGING:');
-    console.log('Selected Category:', selectedCategory);
-    console.log('Selected Tier:', selectedTier);
-    console.log('Search Term:', searchTerm);
-    console.log('--- End Filter Debug ---');
   }, [selectedCategory, selectedTier, searchTerm]); // Removed 'categories' from dependencies
 
   const handleCategoryChange = (value: string) => {
-    console.log('🔄 Category changing from', selectedCategory, 'to', value);
     onCategoryChange(value);
   };
 
   const handleTierChange = (value: string) => {
-    console.log('🔄 Tier changing from', selectedTier, 'to', value);
     onTierChange(value);
   };
 
   const handleSearchChange = (value: string) => {
-    console.log('🔍 Search changing from', searchTerm, 'to', value);
     onSearchChange(value);
   };
 

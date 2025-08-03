@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
 export interface Event {
-  id: number; // Changed from string to number
+  UUID: number; // Changed from 'id' to 'UUID' to match database column
   title: string;
   description: string;
   Catogory: string;
@@ -41,20 +41,7 @@ export const getAllEvents = async (): Promise<{
       return { data: null, error };
     }
 
-    // Debug: Log the first few events to see their structure
-    if (data && data.length > 0) {
-      console.log(
-        "Sample events with IDs:",
-        data.slice(0, 3).map((event) => ({
-          id: event.id,
-          title: event.title,
-          idType: typeof event.id,
-          allKeys: Object.keys(event),
-        }))
-      );
-      console.log("Full first event:", data[0]);
-    }
-
+    // Remove all debug console.logs from here
     return { data, error: null };
   } catch (error) {
     console.error("Error in getAllEvents:", error);
@@ -85,70 +72,51 @@ export const getEventsByCategory = async (
   }
 };
 
-// Fetch events by tier
-export const getEventsByTier = async (
-  tier: string
-): Promise<{ data: Event[] | null; error: any }> => {
-  const tierHierarchy: { [key: string]: string[] } = {
-    free: ["free"],
-    silver: ["free", "silver"],
-    gold: ["free", "silver", "gold"],
-    platinum: ["free", "silver", "gold", "platinum"],
-  };
-
-  const allowedTiers = tierHierarchy[tier] || ["free"];
-
+// Fetch events with filters
+export const getEventsWithFilters = async (filters: {
+  category?: string;
+  tier?: string;
+  location?: string;
+  searchTerm?: string;
+}): Promise<{ data: Event[] | null; error: any }> => {
   try {
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      .in("tier", allowedTiers)
-      .order("event_date", { ascending: true });
+    let query = supabase.from("events").select("*");
+
+    if (filters.category) {
+      query = query.eq("Catogory", filters.category);
+    }
+
+    if (filters.tier) {
+      query = query.eq("tier", filters.tier);
+    }
+
+    if (filters.searchTerm) {
+      query = query.or(
+        `title.ilike.%${filters.searchTerm}%,description.ilike.%${filters.searchTerm}%`
+      );
+    }
+
+    const { data, error } = await query.order("event_date", {
+      ascending: true,
+    });
 
     if (error) {
-      console.error("Error fetching events by tier:", error);
+      console.error("Error fetching events with filters:", error);
       return { data: null, error };
     }
 
     return { data, error: null };
   } catch (error) {
-    console.error("Error in getEventsByTier:", error);
+    console.error("Error in getEventsWithFilters:", error);
     return { data: null, error };
   }
 };
 
-// Search events by title or description
-export const searchEvents = async (
-  searchTerm: string
-): Promise<{ data: Event[] | null; error: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      .or(
-        `title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,tags.ilike.%${searchTerm}%`
-      )
-      .order("event_date", { ascending: true });
-
-    if (error) {
-      console.error("Error searching events:", error);
-      return { data: null, error };
-    }
-
-    return { data, error: null };
-  } catch (error) {
-    console.error("Error in searchEvents:", error);
-    return { data: null, error };
-  }
-};
-
-// Get event by ID
+// Additional functions for event details page
 export const getEventById = async (
   id: string
 ): Promise<{ data: Event | null; error: any }> => {
   try {
-    console.log("getEventById called with ID:", id, "Type:", typeof id); // Debug log
-
     if (!id || id === "undefined" || id === undefined) {
       console.error("Invalid event ID provided:", id);
       return { data: null, error: "Invalid event ID" };
@@ -161,15 +129,11 @@ export const getEventById = async (
       return { data: null, error: "Invalid numeric ID format" };
     }
 
-    console.log("Making Supabase query for ID:", numericId); // Debug log
-
     const { data, error } = await supabase
       .from("events")
       .select("*")
-      .eq("id", numericId) // Use numeric ID
+      .eq("UUID", numericId) // Use UUID column instead of id
       .single();
-
-    console.log("Supabase response:", { data, error }); // Debug log
 
     if (error) {
       console.error("Error fetching event by ID:", error);
@@ -183,29 +147,30 @@ export const getEventById = async (
   }
 };
 
-// Get events with pagination
-export const getEventsWithPagination = async (
-  page: number = 1,
-  limit: number = 12
-): Promise<{ data: Event[] | null; error: any; count: number | null }> => {
+export const getRelatedEvents = async (
+  currentEventId: string,
+  category: string,
+  limit: number = 3
+): Promise<{ data: Event[] | null; error: any }> => {
   try {
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-
-    const { data, error, count } = await supabase
+    const numericId = parseInt(currentEventId, 10);
+    
+    const { data, error } = await supabase
       .from("events")
-      .select("*", { count: "exact" })
-      .order("event_date", { ascending: true })
-      .range(from, to);
+      .select("*")
+      .eq("Catogory", category)
+      .neq("id", numericId)
+      .limit(limit)
+      .order("event_date", { ascending: true });
 
     if (error) {
-      console.error("Error fetching events with pagination:", error);
-      return { data: null, error, count: null };
+      console.error("Error fetching related events:", error);
+      return { data: null, error };
     }
 
-    return { data, error: null, count };
+    return { data, error: null };
   } catch (error) {
-    console.error("Error in getEventsWithPagination:", error);
-    return { data: null, error, count: null };
+    console.error("Error in getRelatedEvents:", error);
+    return { data: null, error };
   }
 };

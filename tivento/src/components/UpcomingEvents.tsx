@@ -1,26 +1,34 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
+import { useUserSync } from '@/pages/Authentication/useUserSync';
+import { canRegisterForEvent } from '@/lib/tierUtils';
 
 const UpcomingEvents = () => {
+  const { isSignedIn } = useUser();
+  const { supabaseUser } = useUserSync();
+
   const events = [
     {
       id: 1,
-      image: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       date: 'Dec 15',
       time: '7:00 PM',
-      title: 'JavaScript Developers Meetup',
-      groupName: 'NYC Tech Community',
-      attendees: 47,
+      title: 'Tech Startup Networking',
+      groupName: 'Innovation Hub',
+      attendees: 24,
       tier: 'Free'
     },
     {
       id: 2,
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      image: 'https://images.unsplash.com/photo-1551818255-e6e10975bc17?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       date: 'Dec 18',
       time: '9:00 AM',
-      title: 'Central Park Hiking Group',
-      groupName: 'Manhattan Outdoor Adventures',
-      attendees: 23,
+      title: 'Mountain Hiking Adventure',
+      groupName: 'Outdoor Enthusiasts',
+      attendees: 12,
       tier: 'Silver'
     },
     {
@@ -35,12 +43,12 @@ const UpcomingEvents = () => {
     },
     {
       id: 4,
-      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+      image: 'https://images.unsplash.com/photo-1543269664-56d93c1b41a6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
       date: 'Dec 22',
-      time: '7:30 PM',
-      title: 'Book Club: Sci-Fi Classics',
-      groupName: 'Literary Minds NYC',
-      attendees: 12,
+      time: '2:00 PM',
+      title: 'Gourmet Cooking Class',
+      groupName: 'Culinary Masters',
+      attendees: 8,
       tier: 'Free'
     },
     {
@@ -75,21 +83,77 @@ const UpcomingEvents = () => {
     }
   };
 
+  const handleJoinEvent = (event: any) => {
+    if (!isSignedIn) {
+      window.location.href = `/?page=premium&reason=register-${event.tier.toLowerCase()}&redirect=sign-in`;
+      return;
+    }
+
+    if (!supabaseUser) {
+      return; // Wait for user data to load
+    }
+
+    const eventTier = event.tier.toLowerCase() as 'free' | 'silver' | 'gold' | 'platinum';
+    const userTier = supabaseUser.tier as 'free' | 'silver' | 'gold' | 'platinum';
+
+    if (!canRegisterForEvent(userTier, eventTier)) {
+      window.location.href = `/?page=premium&reason=register-${eventTier}`;
+      return;
+    }
+
+    // User can register - implement actual registration logic here
+    alert(`Registration for ${event.title} would be implemented here!`);
+  };
+
+  const getJoinButtonText = (event: any) => {
+    if (!isSignedIn) {
+      return 'Sign In to Join';
+    }
+
+    if (!supabaseUser) {
+      return 'Loading...';
+    }
+
+    const eventTier = event.tier.toLowerCase() as 'free' | 'silver' | 'gold' | 'platinum';
+    const userTier = supabaseUser.tier as 'free' | 'silver' | 'gold' | 'platinum';
+
+    if (!canRegisterForEvent(userTier, eventTier)) {
+      return 'Upgrade to Join';
+    }
+
+    return 'Join Event';
+  };
+
+  const getJoinButtonColor = (event: any) => {
+    if (!isSignedIn || !supabaseUser) {
+      return 'text-orange-600 hover:text-orange-700';
+    }
+
+    const eventTier = event.tier.toLowerCase() as 'free' | 'silver' | 'gold' | 'platinum';
+    const userTier = supabaseUser.tier as 'free' | 'silver' | 'gold' | 'platinum';
+
+    if (!canRegisterForEvent(userTier, eventTier)) {
+      return 'text-red-600 hover:text-red-700';
+    }
+
+    return 'text-orange-600 hover:text-orange-700';
+  };
+
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Upcoming Events Near You
+            Upcoming Events
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover amazing events happening in your area and connect with like-minded people.
+            Join these exciting events happening near you. Connect with like-minded people and explore new experiences.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {events.map((event) => (
-            <div key={event.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
+            <div key={event.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
               <div className="relative">
                 <img 
                   src={event.image} 
@@ -111,7 +175,8 @@ const UpcomingEvents = () => {
                 <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors duration-200">
                   {event.title}
                 </h3>
-                <p className="text-gray-600 mb-3">{event.groupName}</p>
+                <p className="text-gray-600 mb-4">{event.groupName}</p>
+                
                 <div className="flex items-center justify-between">
                   <div className="flex items-center text-gray-500">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,8 +184,11 @@ const UpcomingEvents = () => {
                     </svg>
                     <span className="text-sm">{event.attendees} attending</span>
                   </div>
-                  <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
-                    Join Event
+                  <button 
+                    onClick={() => handleJoinEvent(event)}
+                    className={`font-medium text-sm transition-colors duration-200 ${getJoinButtonColor(event)}`}
+                  >
+                    {getJoinButtonText(event)}
                   </button>
                 </div>
               </div>

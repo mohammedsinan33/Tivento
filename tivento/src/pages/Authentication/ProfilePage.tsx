@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-export default function ProfilePage() {
+const ProfilePage = () => {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
-
-  console.log('ProfilePage rendered - isLoaded:', isLoaded, 'isSignedIn:', isSignedIn);
 
   if (!isLoaded) {
     return (
@@ -103,3 +101,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+export default ProfilePage;
