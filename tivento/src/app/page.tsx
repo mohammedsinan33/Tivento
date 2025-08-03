@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import LandingPage from '@/pages/LandingPage';
 import CreateEventPage from '@/pages/CreateEventPage';
@@ -13,7 +14,7 @@ import InvitedEventsPage from '@/pages/InvitedEventsPage';
 import Categories from '@/components/LandingPage/Categories';
 import CategoryPage from '@/components/LandingPage/CategoryPage';
 
-export default function Home() {
+function PageContent() {
   const searchParams = useSearchParams();
   const page = searchParams?.get('page');
   const eventId = searchParams?.get('id');
@@ -59,4 +60,19 @@ export default function Home() {
   }
 
   return <LandingPage />;
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600"></div>
+          <p className="mt-4 text-gray-600">Loading Tivento...</p>
+        </div>
+      </div>
+    }>
+      <PageContent />
+    </Suspense>
+  );
 }

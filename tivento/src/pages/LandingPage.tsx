@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from '../components/LandingPage/Header';
+import Header from '@/components/LandingPage/Header';
 import Hero from '../components/LandingPage/Hero';
 import HowItWorks from '../components/LandingPage/HowItWorks';
 import UpcomingEvents from '../components/LandingPage/UpcomingEvents';
