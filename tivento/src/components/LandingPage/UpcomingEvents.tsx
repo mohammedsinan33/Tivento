@@ -412,40 +412,41 @@ const UpcomingEvents = () => {
         {events.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {events.map((event) => (
-              <div key={event.UUID} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-                <div className="relative">
+              <div key={event.UUID} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 ease-in-out overflow-hidden group transform hover:-translate-y-2">
+                <div className="relative overflow-hidden">
                   <img 
                     src={event.image_url || getDefaultImage(event.category)}
                     alt={event.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
                   />
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTierColor(event.tier)}`}>
+                  <div className="absolute top-4 left-4 transform transition-all duration-300 ease-in-out group-hover:scale-105">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTierColor(event.tier)} transition-all duration-300 ease-in-out group-hover:shadow-md`}>
                       {event.tier?.charAt(0).toUpperCase() + event.tier?.slice(1)}
                     </span>
                   </div>
-                  <div className="absolute top-4 right-4 bg-white rounded-lg px-3 py-2 shadow-lg">
-                    <div className="text-orange-600 font-bold text-lg">{formatDate(event.starting_time)}</div>
-                    <div className="text-gray-600 text-sm">{formatTime(event.starting_time)}</div>
+                  <div className="absolute top-4 right-4 bg-white rounded-lg px-3 py-2 shadow-lg transform transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-xl">
+                    <div className="text-orange-600 font-bold text-lg transition-colors duration-300">{formatDate(event.starting_time)}</div>
+                    <div className="text-gray-600 text-sm transition-colors duration-300">{formatTime(event.starting_time)}</div>
                   </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out"></div>
                 </div>
                 
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors duration-200">
+                <div className="p-6 transition-all duration-300 ease-in-out">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors duration-300 ease-in-out">
                     {event.title}
                   </h3>
-                  <p className="text-gray-600 mb-4">{event.group || 'Community Event'}</p>
+                  <p className="text-gray-600 mb-4 group-hover:text-gray-700 transition-colors duration-300 ease-in-out">{event.group || 'Community Event'}</p>
                   
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center text-gray-500">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center text-gray-500 group-hover:text-gray-600 transition-colors duration-300 ease-in-out">
+                      <svg className="w-5 h-5 mr-2 transition-transform duration-300 ease-in-out group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       <span className="text-sm">{event.registrationCount} attending</span>
                     </div>
                     <button 
                       onClick={() => handleJoinEvent(event)}
-                      className={`font-medium text-sm transition-colors duration-200 ${getJoinButtonColor(event)}`}
+                      className={`font-medium text-sm transition-all duration-300 ease-in-out transform hover:scale-105 hover:font-semibold ${getJoinButtonColor(event)}`}
                     >
                       {getJoinButtonText(event)}
                     </button>
@@ -463,7 +464,7 @@ const UpcomingEvents = () => {
 
         <div className="text-center mt-12">
           <Link href="/?page=events">
-          <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+          <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl shadow-lg">
             See more events
           </button>
           </Link>
