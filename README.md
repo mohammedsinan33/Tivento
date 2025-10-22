@@ -211,7 +211,7 @@ We welcome contributions! Here's how you can help:
 ## 📞 Support
 
 For support and questions:
-- **Email**: support@tivento.com
+- **Email**: mohammedsinan.k.33@gmail.com
 - **Issues**: [GitHub Issues](https://github.com/mohammedsinan33/Tivento/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/mohammedsinan33/Tivento/discussions)
 
